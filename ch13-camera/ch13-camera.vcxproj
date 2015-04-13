@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BAD6E20B-EDD1-4050-8F1C-9DF631FBE9AC}</ProjectGuid>
-    <RootNamespace>ch13camera</RootNamespace>
+    <ProjectGuid>{D9EB1640-1BC4-4F09-B9A1-0DB90D250D85}</ProjectGuid>
+    <RootNamespace>ch13Camera</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -62,19 +62,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ch13-camera.cpp" />
+    <None Include="triangle.frag" />
+    <None Include="triangle.vert" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="camera.frag" />
-    <None Include="camera.vert" />
+    <ClCompile Include="ch13-Camera.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <PropertyGroup>
-    <IncludePath>C:\Program Files\Autodesk\Maya2012\include;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <LibraryPath>C:\Program Files\Autodesk\Maya2012\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
 </Project>

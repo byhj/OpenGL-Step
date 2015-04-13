@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6258D3D8-604E-4DDC-80D4-96B29A6F3708}</ProjectGuid>
-    <RootNamespace>ch18diffuse</RootNamespace>
+    <ProjectGuid>{4F1E73ED-8742-4ED1-811F-3AFEEFE222CA}</ProjectGuid>
+    <RootNamespace>ch18Diffuse</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -62,19 +62,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ch18-diffuse.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="diffuse.frag" />
-    <None Include="diffuse.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <PropertyGroup>
-    <IncludePath>C:\Program Files\Autodesk\Maya2012\include;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <LibraryPath>C:\Program Files\Autodesk\Maya2012\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
 </Project>

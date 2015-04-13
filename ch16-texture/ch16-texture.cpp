@@ -1,19 +1,8 @@
 #include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
+#include <shader.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-using namespace std;
-
-#include <shader.h>
-#include <texture.h>
-#define BUFFER_OFFSET(offset) ((GLvoid*)(NULL + offset))
-
-GLuint vbo, vao, ibo , program;
-GLuint proj_matrix_loc, mv_matrix_loc;
-GLuint gSampler, texture;
-Shader textureShader("texture shader");
+#include "byhj.h"
 
 struct Vertex {
 	glm::vec3 pos; //顶点坐标
@@ -23,10 +12,10 @@ struct Vertex {
 };
 
 Vertex VertexData[4] = { 
-	    Vertex(glm::vec3(-1.0f, -1.0f, 0.5773f), glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(0.0f, -1.0f, -1.15475f), glm::vec2(0.5f, 0.0f)),
-		Vertex(glm::vec3(1.0f, -1.0f, 0.5773f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(0.0f, 1.0f, 0.0f),      glm::vec2(0.5f, 1.0f))
+	Vertex(glm::vec3(-1.0f, -1.0f, 0.5773f), glm::vec2(0.0f, 0.0f)),
+	Vertex(glm::vec3(0.0f, -1.0f, -1.15475f), glm::vec2(0.5f, 0.0f)),
+	Vertex(glm::vec3(1.0f, -1.0f, 0.5773f),  glm::vec2(1.0f, 0.0f)),
+	Vertex(glm::vec3(0.0f, 1.0f, 0.0f),      glm::vec2(0.5f, 1.0f))
 };
 
 const static GLushort ElementData[] = {
@@ -36,21 +25,104 @@ const static GLushort ElementData[] = {
 	0, 1, 2
 };
 
-void load_shader()
+
+class Triangle_app : public byhj::Application 
 {
-	textureShader.init();
-	textureShader.attach(GL_VERTEX_SHADER, "texture.vert");
-	textureShader.attach(GL_FRAGMENT_SHADER, "texture.frag");
-	textureShader.link();
-	textureShader.use();
-	program = textureShader.program;
-	mv_matrix_loc = glGetUniformLocation(program, "mv_matrix");
-	proj_matrix_loc = glGetUniformLocation(program, "proj_matrix");
-    gSampler = glGetUniformLocation(program, "gSampler");
-	glUniform1i(gSampler, 0);
+public:
+	Triangle_app():program(0), vao(0), vbo(0), ibo(0), 
+		           TriangleShader("Triangle Shader") {}
+	~Triangle_app(){}
+
+public:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+	void init_unfiorm();
+
+	virtual void initWindowInfo()
+	{
+		windowInfo.title = "CH2-Point";
+		windowInfo.Width = 1300;
+		windowInfo.Height = 900;
+	}
+
+	virtual void init()
+	{	
+	    //glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		texture = loadTexture("../media/texture/test.png", true);
+		init_shader();
+		init_buffer();
+		init_vertexArray();
+	}
+
+	virtual void render()
+	{
+		//Clear the color buffer
+		static const GLfloat red[] = {0.0f, 0.0f, 0.0f, 1.0f };
+		static const GLfloat one[] = {1.0f};
+		glClearBufferfv(GL_COLOR, 0, red);
+		glClearBufferfv(GL_DEPTH, 0, one);
+		static float scale = 0.0f;
+		scale += 0.01f;  //先平移，缩放，旋转
+		
+		//set model matrix
+		glm::mat4 model = glm::mat4(1.0f); //注意矩阵顺序，先旋转后平移，如果先平移的话会产生不正常的现象！
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, -60.0f, glm::vec3(0.0f, 1.0f, 0.0));
+		glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
+
+		//set view matrix
+        glm::mat4 view = camera.GetViewMatrix();
+		glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0]);
+		
+		//set proj matrix
+		glm::mat4 proj_matrix = glm::perspective(camera.Zoom, windowInfo.aspect, 1.0f, 100.0f);
+		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj_matrix[0][0]);
+
+		//render the scene
+		glBindVertexArray(vao);
+		glUseProgram(program);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_SHORT, 0);
+		glBindVertexArray(0);
+	}
+
+	//clear the status
+	virtual void shutdown()
+	{
+		glDeleteBuffers(1, &vbo);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteProgram(program);
+	}
+
+
+private:
+	GLuint  program;
+	Shader  TriangleShader;
+	GLuint  vbo, vao, ibo;;
+	GLuint  model_loc, view_loc, proj_loc;
+    GLuint  texture, tex_loc;
+};
+
+DECLARE_MAIN(Triangle_app);
+
+void Triangle_app::init_shader()
+{
+	TriangleShader.init();
+	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
+	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
+	TriangleShader.link();
+	TriangleShader.use();
+	program = TriangleShader.program;
+	model_loc = glGetUniformLocation(program, "model");
+	view_loc = glGetUniformLocation(program, "view");
+	proj_loc = glGetUniformLocation(program, "proj");
+	tex_loc = glGetUniformLocation(program, "tex");
+	glUniform1i(tex_loc, 0);
 }
 
-void init_buffer()
+void Triangle_app::init_buffer()
 {
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -59,176 +131,21 @@ void init_buffer()
 
 	glGenBuffers(1, &ibo);  //将索引数据传入
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ElementData),
-		ElementData, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ElementData), ElementData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void init_texture()
+void Triangle_app::init_vertexArray()
 {
-	texture = loadTexture("../test.png"); //将纹理数据传入
-}
 
-void init_vertexArray()
-{
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL); 
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(glm::vec3));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), 
+		                  (GLvoid*)( sizeof(glm::vec3) + NULL ) );
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-}
-
-void init()
-{
-	load_shader();
-	init_texture();
-	init_buffer();
-	init_vertexArray();
-	glFrontFace(GL_CW); //背面剔除
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-}
-
-
-static glm::vec3 target(0.0f, 0.0f, 0.0f); //控制摄像头，使用球体坐标360度旋转
-static glm::vec3 up(0.0f, 1.0f, 0.0f);
-static float camX = 0.0, camY = 0.0, camZ = 5.0;
-int startX, startY, tracking = 0;
-float alpha = 0.0f, beta = 0.0f;
-float r = 5.0f;
-
-void render()
-{
-	static const float black[] = {0.0f, 0.0f, 0.0f ,1.0f};
-	glClearBufferfv(GL_COLOR, 0, black);
-	textureShader.use();
-	glBindVertexArray(vao);
-	glViewport(0, 0, 720, 640);
-	static float scale = 0.0f;
-	scale += 0.01f;  //先平移，缩放，旋转
-
-	glm::mat4 model_matrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -3.0f));               
-	glm::mat4 view_matrix = glm::lookAt(glm::vec3(camX, camY, camZ), target, up);
-	glm::mat4 mv_matrix =  view_matrix * model_matrix ;
-	glUniformMatrix4fv(mv_matrix_loc, 1, GL_FALSE, &mv_matrix[0][0]);
-
-	glm::mat4 proj_matrix = glm::perspective(60.0f, 720.0f / 640.0f, 1.0f, 100.0f);
-	glUniformMatrix4fv(proj_matrix_loc, 1, GL_FALSE, &proj_matrix[0][0]);
-
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
-
-void processKeys(unsigned char key, int xx, int yy) 
-{
-	switch(key) {
-
-		case 27:
-			glutLeaveMainLoop();
-			break;
-		case 'z': r -= 0.1f; break;
-		case 'x': r += 0.1f; break;	
-		case 'm': glEnable(GL_MULTISAMPLE); break;
-		case 'n': glDisable(GL_MULTISAMPLE); break;
-	}
-	camX = r * sin(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camY = r *   						     sin(beta * 3.14f / 180.0f);
-
-//  uncomment this if not using an idle func
-//	glutPostRedisplay();
-}
-
-void processMouseButtons(int button, int state, int xx, int yy)
-{
-	// start tracking the mouse
-	if (state == GLUT_DOWN)  {
-		startX = xx; //获取当前坐标
-		startY = yy;
-		if (button == GLUT_LEFT_BUTTON)
-			tracking = 1;
-		else if (button == GLUT_RIGHT_BUTTON)
-			tracking = 2;
-	}
-
-	//stop tracking the mouse
-	else if (state == GLUT_UP) {
-		if (tracking == 1) {
-			alpha += (startX - xx);
-			beta += (yy - startY);
-		}
-		else if (tracking == 2) {
-			r += (yy - startY) * 0.01f;
-		}
-		tracking = 0;
-	}
-}
-
-
-void processMouseMotion(int xx, int yy)
-{
-	int deltaX, deltaY;
-	float alphaAux, betaAux;
-	float rAux;
-
-	deltaX = startX - xx;
-	deltaY = yy - startY;
-
-	// left mouse button: move texture
-	if (tracking == 1) {
-		alphaAux = alpha + deltaX;
-		betaAux = beta + deltaY;
-		if (betaAux > 85.0f)
-			betaAux = 85.0f;
-		else if (betaAux < -85.0f)
-			betaAux = -85.0f;
-		rAux = r;
-
-		camX = rAux * cos(betaAux * 3.14f / 180.0f) * sin(alphaAux * 3.14f / 180.0f);
-		camZ = rAux * cos(betaAux * 3.14f / 180.0f) * cos(alphaAux * 3.14f / 180.0f);
-		camY = rAux * sin(betaAux * 3.14f / 180.0f);
-	}
-	// right mouse button: zoom
-	else if (tracking == 2) {
-
-		alphaAux = alpha;
-		betaAux = beta;
-		rAux = r + (deltaY * 0.01f);
-
-		camX = rAux * cos(betaAux * 3.14f / 180.0f) * sin(alphaAux * 3.14f / 180.0f);
-		camZ = rAux * cos(betaAux * 3.14f / 180.0f) * cos(alphaAux * 3.14f / 180.0f);
-		camY = rAux * sin(betaAux * 3.14f / 180.0f);
-	}
-}
-
-void mouseWheel(int wheel, int direction, int x, int y) {
-
-	r += direction * 0.1f;
-	camX = r * sin(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camY = r * sin(beta * 3.14f / 180.0f);
-}
-
-int main(int argc, char **argv)
-{
-	
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE); //显示模式，重要
-	glutInitWindowPosition(150, 0);
-	glutInitWindowSize(720, 640);
-	glutCreateWindow("Tutorial 16 - texture");
-	GLenum res = glewInit();
-	if (res != GLEW_OK)
-		cout << "Fail to initial the glew:" << glewGetString(res) << endl;
-	init();
-	glutDisplayFunc(render);
-	glutKeyboardFunc(processKeys);
-	glutMouseFunc(processMouseButtons);
-	glutMotionFunc(processMouseMotion);
-	glutMouseWheelFunc (mouseWheel) ;
-	glutMainLoop(); //循环调用注册函数displa
-	return 0;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBindVertexArray(0);
 }

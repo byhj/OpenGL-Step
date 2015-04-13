@@ -1,22 +1,14 @@
 #include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
+#include <shader.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-using namespace std;
-
-#include <shader.h>
-
-GLuint vbo, vao, ibo , mv_matrix_loc, program;
-GLuint proj_matrix_loc;
-Shader perspectiveShader("perspective shader");
+#include "byhj.h"
 
 const static glm::vec3 VertexData[4] = {
-         glm::vec3(-1.0f, -1.0f, 0.5773f ),
-		 glm::vec3( 0.0f, -1.0f, -1.15475f ),
-		 glm::vec3( 1.0f, -1.0f, 0.5773f),
-		 glm::vec3( 0.0f, 1.0f, 0.0f ),
+	glm::vec3(-1.0f, -1.0f, 0.5773f ),
+	glm::vec3( 0.0f, -1.0f, -1.15475f ),
+	glm::vec3( 1.0f, -1.0f, 0.5773f),
+	glm::vec3( 0.0f, 1.0f, 0.0f ),
 };
 
 const static GLushort ElementData[] = {
@@ -26,19 +18,85 @@ const static GLushort ElementData[] = {
 	0, 1, 2
 };
 
-void load_shader()
+class Triangle_app : public byhj::Application 
 {
-	perspectiveShader.init();
-	perspectiveShader.attach(GL_VERTEX_SHADER, "perspective.vert");
-	perspectiveShader.attach(GL_FRAGMENT_SHADER, "perspective.frag");
-	perspectiveShader.link();
-	perspectiveShader.use();
-	program = perspectiveShader.program;
-	mv_matrix_loc = glGetUniformLocation(program, "mv_matrix");
-	proj_matrix_loc = glGetUniformLocation(program, "proj_matrix");
+public:
+	Triangle_app():program(0), vao(0), vbo(0), ibo(0), 
+		           TriangleShader("Triangle Shader") {}
+	~Triangle_app(){}
+
+public:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+	void init_unfiorm();
+
+	virtual void initWindowInfo()
+	{
+		windowInfo.title = "CH2-Point";
+		windowInfo.Width = 1300;
+		windowInfo.Height = 900;
+	}
+
+	virtual void init()
+	{
+		init_shader();
+		init_buffer();
+		init_vertexArray();
+	}
+
+	virtual void render()
+	{
+		//Clear the color buffer
+		static const GLfloat red[] = {0.0f, 0.0f, 0.0f, 1.0f };
+		glClearBufferfv(GL_COLOR, 0, red);
+
+		static float scale = 0.0f;
+		scale += 0.01f;  //先平移，缩放，旋转
+		glm::mat4 model = glm::mat4(1.0f); //注意矩阵顺序，先旋转后平移，如果先平移的话会产生不正常的现象！
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
+		model = glm::rotate(model, scale, glm::vec3(0.0, 1.0, 0.0));
+		glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
+
+		glm::mat4 proj_matrix = glm::perspective(45.0f, windowInfo.aspect, 1.0f, 100.0f);
+		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj_matrix[0][0]);
+
+		glBindVertexArray(vao);
+		glUseProgram(program);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_SHORT, 0);
+		glBindVertexArray(0);
+	}
+
+	//clear the status
+	virtual void shutdown()
+	{
+		glDeleteBuffers(1, &vbo);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteProgram(program);
+	}
+
+private:
+	GLuint  program;
+	Shader  TriangleShader;
+	GLuint  vbo, vao, ibo;;
+	GLuint  model_loc, proj_loc;
+};
+
+DECLARE_MAIN(Triangle_app);
+
+void Triangle_app::init_shader()
+{
+	TriangleShader.init();
+	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
+	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
+	TriangleShader.link();
+	TriangleShader.use();
+	program = TriangleShader.program;
+	model_loc = glGetUniformLocation(program, "model");
+	proj_loc = glGetUniformLocation(program, "proj");
 }
 
-void init_buffer()
+void Triangle_app::init_buffer()
 {
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -47,62 +105,17 @@ void init_buffer()
 
 	glGenBuffers(1, &ibo);  //将索引数据传入
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ElementData),
-		ElementData, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ElementData), ElementData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void init_vertexArray()
+void Triangle_app::init_vertexArray()
 {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);   //bind the vbo to vao, send the data to shader
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-}
-
-void init()
-{
-	load_shader();
-	init_buffer();
-	init_vertexArray();
-}
-
-void render()
-{
-	static const float black[] = {0.0f, 0.0f, 0.0f ,1.0f};
-	glClearBufferfv(GL_COLOR, 0, black);
-	perspectiveShader.use();
-	glBindVertexArray(vao);
-	glViewport(0, 0, 720, 640);
-	static float scale = 0.0f;
-	scale += 0.01f;  //先平移，缩放，旋转
-	glm::mat4 mv_matrix = glm::mat4(1.0f); //注意矩阵顺序，先旋转后平移，如果先平移的话会产生不正常的现象！
-	mv_matrix *= glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -5.0f));
-	mv_matrix *= glm::rotate(glm::mat4(1.0), scale, glm::vec3(0.0, 1.0, 0.0));
-	glUniformMatrix4fv(mv_matrix_loc, 1, GL_FALSE, &mv_matrix[0][0]);
-
-	glm::mat4 proj_matrix = glm::perspective(30.0f, 720.0f / 640.0f, 1.0f, 100.0f);
-	glUniformMatrix4fv(proj_matrix_loc, 1, GL_FALSE, &proj_matrix[0][0]);
-
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
-
-int main(int argc, char **argv)
-{
-	
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE); //显示模式，重要
-	glutInitWindowPosition(150, 0);
-	glutInitWindowSize(720, 640);
-	glutCreateWindow("Tutorial 12 - perspective");
-	GLenum res = glewInit();
-	if (res != GLEW_OK)
-		cout << "Fail to initial the glew:" << glewGetString(res) << endl;
-	init();
-	glutDisplayFunc(render);
-	glutMainLoop(); //循环调用注册函数display
-	return 0;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBindVertexArray(0);
 }
