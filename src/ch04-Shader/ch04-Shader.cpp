@@ -103,6 +103,7 @@ void render()
 
 	//Swap the buffer to show
 	glutSwapBuffers();
+
 }
 
 void shutdown()
@@ -122,6 +123,5 @@ int main(int argc, char **argv)
 	init();
 	glutDisplayFunc(render);
 	glutMainLoop();
-
 	shutdown();
 }
