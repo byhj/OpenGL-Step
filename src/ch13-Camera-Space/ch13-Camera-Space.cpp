@@ -26,7 +26,7 @@ const int g_PosY = 100;
 const char *g_pWindowTitle = "ch3-Triangle";
 static Shader TriangleShader("Triangle Shader");
 static GLuint g_vbo = 0, g_ibo = 0, g_program = 0, g_vao = 0;
-static GLuint g_world_loc = -1;
+static GLuint g_mvp_loc = -1;
 
 static const GLfloat VertexData[] = 
 {
@@ -87,8 +87,8 @@ void init_shader()
 	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
 	TriangleShader.link();
 	g_program = TriangleShader.GetProgram();
-	g_world_loc = glGetUniformLocation(g_program, "world");
-	if (g_world_loc == -1)
+	g_mvp_loc = glGetUniformLocation(g_program, "mvp");
+	if (g_mvp_loc == -1)
 	{
 		std::cerr << "Can not get the uniform location." << std::endl;
 	}
@@ -117,6 +117,10 @@ void init()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+static const glm::vec3 camPos = glm::vec3(0.0f ,0.0f, 4.0f);
+static const glm::vec3 camTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+static const glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 void render()
 {
 	//clear the color buffer to backgroud color
@@ -127,18 +131,19 @@ void render()
 	glBindVertexArray(g_vao);
 
 	static GLfloat time = 0.0f;
-	time += 1.0f;
+	time += 0.5f;
 	static glm::mat4 mone = glm::mat4(1.0f);
 
 	//You should add the translate to set last
-    glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -5.0f) )
-                    * glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
-	
+	glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -5.0f) )
+		* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
+
+	glm::mat4 view = glm::lookAt(camPos, camTarget, camUp);
 	//Notice the fov, It has some different!
 	glm::mat4 proj = glm::perspective(glm::radians(30.0f), g_Aspect, 1.0f, 100.0f);
 
 					//Notice the row-major or column-major 
-	glUniformMatrix4fv(0, 1, GL_FALSE, &(proj * world)[0][0] );
+	glUniformMatrix4fv(0, 1, GL_FALSE, &(proj * view * world)[0][0] );
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	//Swap the buffer to show and make current window rediaplay

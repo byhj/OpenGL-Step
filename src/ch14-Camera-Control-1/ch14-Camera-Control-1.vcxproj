@@ -63,6 +63,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="triangle.frag" />
+    <None Include="triangle.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ch14-Camera-Control-1.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\common\camera.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
