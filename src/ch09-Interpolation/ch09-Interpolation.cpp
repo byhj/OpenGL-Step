@@ -110,7 +110,7 @@ void render()
 	glBindVertexArray(g_vao);
 
 	static GLfloat time = 0.0f;
-	time += 0.01f;
+	time += 0.001f;
     glm::mat4 world;
 	world[0][0] = sinf(time);  
 	world[1][1] = sinf(time); 

@@ -24,16 +24,26 @@ const int g_PosY = 100;
 //Window Title
 const char *g_pWindowTitle = "ch3-Triangle";
 static Shader TriangleShader("Triangle Shader");
-static GLuint g_vbo = 0, g_program = 0, g_vao = 0;
+static GLuint g_vbo = 0, g_ibo = 0, g_program = 0, g_vao = 0;
 static GLuint g_world_loc = -1;
 
 static const GLfloat VertexData[] = 
 {
-	-1.0f,  -1.0f, 0.0f, 1.0f,
-	 1.0f,  -1.0f, 0.0f, 1.0f,
-	 0.0f,   1.0f, 0.0f, 1.0f,
+	-1.0f, -1.0f, 0.0f, 
+	 0.0f, -1.0f, 1.0f, 
+	 1.0f, -1.0f, 0.0f, 
+	 0.0f,  1.0f, 0.0f,
 };
 static const GLsizei VertexSize = sizeof(VertexData);
+
+static const GLuint IndexData[] = 
+{
+	0, 3, 1,
+	1, 3, 2,
+	2, 3, 0,
+	0, 1, 2
+};
+static const GLsizei IndexSize = sizeof(IndexData);
 
 void init_buffer()
 {
@@ -42,6 +52,11 @@ void init_buffer()
 	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &g_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void init_vertexArray()
@@ -51,11 +66,12 @@ void init_vertexArray()
 	glBindVertexArray(g_vao);
 
 	//We bind the buffer, change vao status
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
 
 	//Hint how opengl send the data
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);	
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);	
 	
 	//disable it before use
 	glBindVertexArray(0);
@@ -110,13 +126,21 @@ void render()
 	glBindVertexArray(g_vao);
 
 	static GLfloat time = 0.0f;
-	time += 0.001f;
-    glm::mat4 world;
-	world[0][3] = sinf(time);
+	time += 0.01f;
+	static glm::mat4 mone = glm::mat4(1.0f);
 
+	
+	//You should add the translate to set last
+    glm::mat4 world = glm::translate(mone, glm::vec3(sinf(time), 0.0f, 0.0f))
+				    * glm::rotate(mone, glm::radians(-sinf(time) * 90.0f), glm::vec3(0.0f, 0.0f, 1.0f) )
+				    * glm::rotate(mone, glm::radians(-sinf(time) * 90.0f), glm::vec3(0.0f, 1.0f, 0.0f) )
+		            * glm::rotate(mone, glm::radians(-sinf(time) * 90.0f), glm::vec3(1.0f, 0.0f, 0.0f) )
+					* glm::scale(mone, glm::vec3( sinf(time * 0.1f), sinf(time * 0.1f), sinf(time * 0.1f) ) );
+	
+	
 	//Notice the row-major or column-major 
-	glUniformMatrix4fv(0, 1, GL_TRUE, &world[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glUniformMatrix4fv(0, 1, GL_FALSE, &world[0][0]);
+	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	//Swap the buffer to show and make current window rediaplay
 	glutSwapBuffers();

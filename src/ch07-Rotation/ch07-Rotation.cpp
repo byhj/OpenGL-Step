@@ -110,11 +110,13 @@ void render()
 	glBindVertexArray(g_vao);
 
 	static GLfloat time = 0.0f;
-	time += 0.01f;
+	time += 0.001f;
     glm::mat4 world;
 	world[0][0] = cosf(time); world[0][1] = -sinf(time); 
     world[1][0] = sinf(time); world[1][1] = cosf(time);
 
+	//world = glm::rotate(glm::mat4(1.0f), time, glm::vec3(0.0f, 0.0f, 1.0f));
+	
 	//Notice the row-major or column-major 
 	glUniformMatrix4fv(0, 1, GL_TRUE, &world[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, 3);

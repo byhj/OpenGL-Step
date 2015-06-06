@@ -108,7 +108,7 @@ void render()
 
 	//We change the scale value every frame
 	static float scale = 0.0f;
-	scale += 0.01f;
+	scale += 0.001f;
 	glUniform1f(g_scale_loc, sinf(scale) );
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
