@@ -16,9 +16,8 @@ public:
 	}
 	Camera(const glm::vec3 &Pos, const glm::vec3 &Target, const glm::vec3 &Up)
 		:m_pos(Pos), m_target(Target), m_up(Up) 
-	{
+	{	
 		m_direction = m_target - m_pos;
-	
 	}
 
 	~Camera() { };
