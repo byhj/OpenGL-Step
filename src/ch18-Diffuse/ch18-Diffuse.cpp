@@ -25,10 +25,6 @@ glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
-byhj::Light g_light;
-byhj::Material g_mat;
-
-
 class DiffuseApp: public byhj::StepApp
 {
 public:
@@ -54,6 +50,8 @@ private:
 
 	const char *WindowTitle;
 	Shader TriangleShader;
+	byhj::Light light;
+	byhj::Material mat;
 };
 
 CALL_MAIN(DiffuseApp);
@@ -104,8 +102,8 @@ void DiffuseApp::v_Render()
 
 	//Notice the row-major or column-major 
 	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, &mvp[0][0] );
-	glUniform4fv(g_light.u_ambient_loc, 1, &g_light.ambient[0]);
-	glUniform4fv(g_mat.u_ambient_loc, 1, &g_mat.ambient[0]);
+	glUniform4fv(light.u_ambient_loc, 1, &light.ambient[0]);
+	glUniform4fv(mat.u_ambient_loc, 1, &mat.ambient[0]);
 	glUniform1i(tex_loc, 0);
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
@@ -153,8 +151,8 @@ void DiffuseApp::init_buffer()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	g_light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	g_mat.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 0.5f);
+	light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	mat.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 0.5f);
 }
 
 void DiffuseApp::init_vertexArray()
@@ -190,8 +188,8 @@ void DiffuseApp::init_shader()
 	program = TriangleShader.GetProgram();
 	mvp_loc = glGetUniformLocation(program, "mvp");
 	tex_loc = glGetUniformLocation(program, "tex");
-	g_light.u_ambient_loc = glGetUniformLocation(program, "light.ambient");
-	g_mat.u_ambient_loc = glGetUniformLocation(program, "mat.ambient");
+	light.u_ambient_loc = glGetUniformLocation(program, "light.ambient");
+	mat.u_ambient_loc = glGetUniformLocation(program, "mat.ambient");
 
 }
 
@@ -210,24 +208,20 @@ void DiffuseApp::v_Keyboard(unsigned char key, int x, int y)
 	case 'w':
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 		break;
-
 	case 's':
 		camera.ProcessKeyboard(BACKWARD, deltaTime);
 		break;
-
 	case 'd':
 		camera.ProcessKeyboard(LEFT, deltaTime);
 		break;
-
 	case 'a':
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 		break;
-
 	case 'l':
-		g_light.ambient += glm::vec4(0.1f);
+		light.ambient += glm::vec4(0.1f);
 		break;
 	case 'k':
-		g_light.ambient -= glm::vec4(0.1f);
+		light.ambient -= glm::vec4(0.1f);
 		break;
 	}
 
