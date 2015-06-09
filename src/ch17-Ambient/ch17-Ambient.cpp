@@ -2,6 +2,7 @@
 #include <common/common.h>
 #include <common/camera.h>
 #include <common/loadTexture.h>
+#include <common/light.h>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -46,6 +47,10 @@ glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
 static GLfloat g_step = 0.0f;
 
+byhj::Light g_light;
+byhj::Material g_mat;
+
+
 static const GLfloat VertexData[] = 
 {
 	-1.0f, -1.0f,  0.5773f,	  0.0f, 0.0f,
@@ -76,6 +81,9 @@ void init_buffer()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	g_light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	g_mat.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 0.5f);
 }
 
 void init_vertexArray()
@@ -107,10 +115,12 @@ void init_shader()
 	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
 	TriangleShader.link();
 	TriangleShader.use();
+	TriangleShader.interfaceInfo();
 	g_program = TriangleShader.GetProgram();
 	g_mvp_loc = glGetUniformLocation(g_program, "mvp");
 	g_tex_loc = glGetUniformLocation(g_program, "tex");
-	glUniform1i(g_tex_loc, 0);
+	g_light.u_ambient_loc = glGetUniformLocation(g_program, "light.ambient");
+	g_mat.u_ambient_loc = glGetUniformLocation(g_program, "mat.ambient");
 
 	if (g_mvp_loc == -1)
 	{
@@ -163,7 +173,7 @@ void render()
 	static glm::mat4 mone = glm::mat4(1.0f);
 
 	//You should add the translate to set last
-	glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -5.0f) )
+	glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -2.0f) )
 		* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
 	static float currentTime = 0.0f;
 	currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
@@ -178,7 +188,10 @@ void render()
 	glm::mat4 mvp = proj * view * world;
 
 					//Notice the row-major or column-major 
-	glUniformMatrix4fv(0, 1, GL_FALSE, &mvp[0][0] );
+	glUniformMatrix4fv(g_mvp_loc, 1, GL_FALSE, &mvp[0][0] );
+	glUniform4fv(g_light.u_ambient_loc, 1, &g_light.ambient[0]);
+	glUniform4fv(g_mat.u_ambient_loc, 1, &g_mat.ambient[0]);
+	glUniform1i(g_tex_loc, 0);
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	//Swap the buffer to show and make current window rediaplay
@@ -205,6 +218,13 @@ void keyboard(unsigned char key, int x, int y)
 		case 'a':
 			camera.ProcessKeyboard(RIGHT, deltaTime);
 		break;
+
+		case 'l':
+			g_light.ambient += glm::vec4(0.1f);
+			break;
+		case 'k':
+			g_light.ambient -= glm::vec4(0.1f);
+			break;
 	}
 	
 }
