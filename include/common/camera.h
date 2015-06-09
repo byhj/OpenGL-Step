@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
 	FORWARD,
@@ -19,8 +20,8 @@ enum Camera_Movement {
 // Default camera values
 const GLfloat YAW        = -90.0f;
 const GLfloat PITCH      =  0.0f;
-const GLfloat SPEED      =  3.0f;
-const GLfloat SENSITIVTY =  0.25f;
+const GLfloat SPEED      =  0.1f;
+const GLfloat SENSITIVTY =  0.1f;
 const GLfloat ZOOM       =  45.0f;
 
 
@@ -34,11 +35,9 @@ public:
 	glm::vec3 Up;
 	glm::vec3 Right;
 	glm::vec3 WorldUp;
-
 	// Eular Angles
 	GLfloat Yaw;
 	GLfloat Pitch;
-
 	// Camera options
 	GLfloat MovementSpeed;
 	GLfloat MouseSensitivity;
@@ -53,6 +52,7 @@ public:
 		this->Pitch = pitch;
 		this->updateCameraVectors();
 	}
+
 	// Constructor with scalar values
 	Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
 	{
@@ -72,15 +72,15 @@ public:
 	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
 	void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime)
 	{
-		GLfloat velocity = this->MovementSpeed * deltaTime;
+		GLfloat velocity = this->MovementSpeed * deltaTime * 10.0;
 		if (direction == FORWARD)
 			this->Position += this->Front * velocity;
 		if (direction == BACKWARD)
 			this->Position -= this->Front * velocity;
 		if (direction == LEFT)
-			this->Position += this->Right * velocity;
-		if (direction == RIGHT)
 			this->Position -= this->Right * velocity;
+		if (direction == RIGHT)
+			this->Position += this->Right * velocity;
 	}
 
 	// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -108,12 +108,12 @@ public:
 	// Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 	void ProcessMouseScroll(GLfloat yoffset)
 	{
-		if (this->Zoom >= 1.0f && this->Zoom <= 180.0f)
+		if (this->Zoom >= 1.0f && this->Zoom <= 45.0f)
 			this->Zoom -= yoffset;
 		if (this->Zoom <= 1.0f)
 			this->Zoom = 1.0f;
-		if (this->Zoom >= 180.0f)
-			this->Zoom = 180.0f;
+		if (this->Zoom >= 45.0f)
+			this->Zoom = 45.0f;
 	}
 
 private:

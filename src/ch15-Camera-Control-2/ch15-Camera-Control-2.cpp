@@ -170,40 +170,32 @@ void render()
 	glutPostRedisplay();
 }
 
-void keyboard(int key, int x, int y)
+void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-	    case 
-	    case GLUT_KEY_UP:
+	    case 'w':
 			camera.ProcessKeyboard(FORWARD, deltaTime);
 		break;
 
-		case GLUT_KEY_DOWN:
+		case 's':
 			camera.ProcessKeyboard(BACKWARD, deltaTime);
 		break;
 
-		case GLUT_KEY_LEFT:
+		case 'd':
 			camera.ProcessKeyboard(LEFT, deltaTime);
 	    break;
 
-		case GLUT_KEY_RIGHT:
+		case 'a':
 			camera.ProcessKeyboard(RIGHT, deltaTime);
 		break;
 	}
 	
 }
 
-int lastDir = 1;
 void mouseWheel(int wheel, int direction, int x, int y)
 {
-
-	if (lastDir != direction)
-		g_step = 0.0;
-	g_step += direction;
-	std::cout << g_step << std::endl;
-	camera.ProcessMouseScroll(g_step);
-	lastDir = direction;
+	camera.ProcessMouseScroll(direction);
 }
 
 void passiveMouse(int xpos, int ypos)
@@ -221,7 +213,7 @@ void passiveMouse(int xpos, int ypos)
 		lastX = xpos;
 		lastY = ypos;
 
-		camera.ProcessMouseMovement(xoffset, yoffset);
+		camera.ProcessMouseMovement(-xoffset, -yoffset);
 }
 
 void shutdown()
@@ -240,7 +232,7 @@ int main(int argc, char **argv)
 	glutCreateWindow(g_pWindowTitle);
 	init();
 	glutDisplayFunc(render);
-	glutSpecialFunc(keyboard);
+	glutKeyboardFunc(keyboard);
 	glutPassiveMotionFunc(passiveMouse);
 	glutMouseWheelFunc(mouseWheel);
 	glutIdleFunc(render);
