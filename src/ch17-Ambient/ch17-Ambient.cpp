@@ -50,7 +50,6 @@ static GLfloat g_step = 0.0f;
 byhj::Light g_light;
 byhj::Material g_mat;
 
-
 static const GLfloat VertexData[] = 
 {
 	-1.0f, -1.0f,  0.5773f,	  0.0f, 0.0f,
@@ -121,6 +120,7 @@ void init_shader()
 	g_tex_loc = glGetUniformLocation(g_program, "tex");
 	g_light.u_ambient_loc = glGetUniformLocation(g_program, "light.ambient");
 	g_mat.u_ambient_loc = glGetUniformLocation(g_program, "mat.ambient");
+
 
 	if (g_mvp_loc == -1)
 	{
@@ -203,6 +203,9 @@ void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	    case 'e':
+		     exit(0);
+		break;
 	    case 'w':
 			camera.ProcessKeyboard(FORWARD, deltaTime);
 		break;

@@ -2,18 +2,25 @@
 
 layout (location = 0) out vec4 fragColor;
 
-in vec2 tc;
+in VS_OUT
+{
+  vec2 tc;
+  vec3 normal;
+  vec3 FragPos;
+}fs_in;
+
 uniform sampler2D tex;
 
  struct Material 
 {
 	vec4 ambient;
-
+	vec4 diffuse;
 };
 
 struct Light 
 {
    vec4 ambient;
+   vec4 diffuse;
 };
 
 uniform Material mat;
@@ -21,6 +28,11 @@ uniform Light light;
 
 void main(void)
 {
+   vec3 lightDir = vec3(1.0f) ;//(lightPos - fs_in.FragPos);
+   vec3 normal = normalize(fs_in.normal);
    vec4 ambient = light.ambient * mat.ambient;
-   fragColor =  ambient * texture(tex, tc);
+   vec4 diffuse = light.diffuse * mat.diffuse * max(0.0f, dot(lightDir, normal) ); 
+   vec4 result = ambient ;// + diffuse;
+
+   fragColor =  result * texture(tex, fs_in.tc);
 }

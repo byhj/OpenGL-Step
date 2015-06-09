@@ -69,9 +69,6 @@
     <None Include="triangle.frag" />
     <None Include="triangle.vert" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\include\common\light.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
