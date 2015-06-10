@@ -25,14 +25,15 @@ struct Light
 
 uniform Material mat;
 uniform Light light;
+uniform vec3 lightPos = vec3(0.5f, 0.5f, 1.0f);
 
 void main(void)
 {
-   vec3 lightDir = vec3(1.0f) ;//(lightPos - fs_in.FragPos);
+   vec3 lightDir = (lightPos - fs_in.FragPos);
    vec3 normal = normalize(fs_in.normal);
    vec4 ambient = light.ambient * mat.ambient;
    vec4 diffuse = light.diffuse * mat.diffuse * max(0.0f, dot(lightDir, normal) ); 
-   vec4 result = ambient ;// + diffuse;
+   vec4 result = ambient + diffuse;
 
    fragColor =  result * texture(tex, fs_in.tc);
 }

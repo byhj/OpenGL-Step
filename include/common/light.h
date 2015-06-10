@@ -10,9 +10,9 @@ namespace byhj
 		glm::vec4 ambient;
 		glm::vec4 diffuse;
 		glm::vec4 speuclar;
-		GLuint u_ambient_loc;
-		GLuint u_diffuse_loc;
-		GLuint u_speuclar_loc;
+		GLuint ambient_loc;
+		GLuint diffuse_loc;
+		GLuint speuclar_loc;
 	};
 
 	struct Material
@@ -20,9 +20,9 @@ namespace byhj
 		glm::vec4 ambient;
 		glm::vec4 diffuse;
 		glm::vec4 speuclar;
-		GLuint u_ambient_loc;
-		GLuint u_diffuse_loc;
-		GLuint u_speuclar_loc;
+		GLuint ambient_loc;
+		GLuint diffuse_loc;
+		GLuint speuclar_loc;
 	};
     
 }

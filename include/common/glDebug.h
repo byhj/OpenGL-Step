@@ -6,6 +6,23 @@
 #include <cstdlib>
 #include <cstring>
 
+#define INVALID_UNIFORM_LOCATION 0xffffffff
+#define INVALID_OGL_VALUE 0xffffffff
+
+#define SAFE_DELETE(p) if (p) { delete p; p = NULL; }
+
+#define GLExitIfError                                                          \
+{                                                                               \
+    GLenum Error = glGetError();                                                \
+                                                                                \
+    if (Error != GL_NO_ERROR) {                                                 \
+        printf("OpenGL error in %s:%d: 0x%x\n", __FILE__, __LINE__, Error);     \
+        exit(0);                                                                \
+    }                                                                           \
+}
+
+#define GLCheckError() (glGetError() == GL_NO_ERROR)
+
 void DebugOutputToFile(unsigned int source, unsigned int type, unsigned int id,
 									unsigned int severity, const char* message)
 {
@@ -57,7 +74,7 @@ void DebugOutput(unsigned int source, unsigned int type, unsigned int id,
 					   unsigned int severity, const char* message)
 {
 
-		char debSource[16], debType[20], debSev[5];
+		char debSource[16], debType[20], debSev[10];
 		if(source == GL_DEBUG_SOURCE_API_ARB)
 			strcpy(debSource, "OpenGL");
 		else if(source == GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB)
@@ -90,9 +107,15 @@ void DebugOutput(unsigned int source, unsigned int type, unsigned int id,
 			strcpy(debSev, "Medium");
 		else if(severity == GL_DEBUG_SEVERITY_LOW_ARB)
 			strcpy(debSev, "Low");
-				printf("--------------------------------------------------------------------------------");
-		printf("Source:%s\tType:%s\tID:%d\tSeverity:%s\nMessage:%s\n",
-			debSource,debType,id,debSev,message);
+		else 
+			strcpy(debSev, "Other");
+
+		if (strcmp(debSev, "Other") != 0 )
+		{
+		   printf("--------------------------------------------------------------------------------");
+		   printf("Source:%s\tType:%s\tID:%d\tSeverity:%s\nMessage:%s\n",
+			   debSource,debType,id,debSev,message);
+		}
 
 }
 

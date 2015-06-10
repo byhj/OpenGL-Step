@@ -10,25 +10,26 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "stepApp.h"
+#include <common/glDebug.h>
+#include "common/stepApp.h"
 
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-bool keys[1024];
-GLfloat lastX = 400, lastY = 300;
-bool firstMouse = true;
-
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
-
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
+bool keys[1024];
+GLfloat lastX = 400, lastY = 300;
+bool firstMouse = true;
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
+
+
 class DiffuseApp: public byhj::StepApp
 {
 public:
-	DiffuseApp(){};
+	DiffuseApp():AppShader("Diffuse Shader") {};
 	~DiffuseApp(){};
 
 	void v_Init();
@@ -46,10 +47,9 @@ public:
 private:
 	GLuint program;
 	GLuint vao, vbo, ibo;
-	GLuint tex, tex_loc, mvp_loc;
+	GLuint tex, tex_loc, mvp_loc, model_loc;
 
-	const char *WindowTitle;
-	Shader TriangleShader;
+	Shader AppShader;
 	byhj::Light light;
 	byhj::Material mat;
 };
@@ -59,7 +59,7 @@ CALL_MAIN(DiffuseApp);
 void  DiffuseApp::v_Init()
 {
 
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	init_buffer();
 	init_vertexArray();
 	init_shader();
@@ -102,9 +102,14 @@ void DiffuseApp::v_Render()
 
 	//Notice the row-major or column-major 
 	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, &mvp[0][0] );
-	glUniform4fv(light.u_ambient_loc, 1, &light.ambient[0]);
-	glUniform4fv(mat.u_ambient_loc, 1, &mat.ambient[0]);
+	glUniformMatrix4fv(model_loc, 1, GL_FALSE, &world[0][0]);
+
+	glUniform4fv(light.ambient_loc, 1, &light.ambient[0]);
+	glUniform4fv(light.diffuse_loc, 1, &light.diffuse[0]);
+	glUniform4fv(mat.ambient_loc, 1, &mat.ambient[0]);
+	glUniform4fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
 	glUniform1i(tex_loc, 0);
+
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	//Swap the buffer to show and make current window rediaplay
@@ -119,13 +124,12 @@ void DiffuseApp::v_Shutdown()
 	glDeleteBuffers(1, &vbo);
 }
 
-
-static const GLfloat VertexData[] = 
-{
-	-1.0f, -1.0f,  0.5773f,	  0.0f, 0.0f,
-	0.0f, -1.0f, -1.15475f,  0.5f, 0.0f,
-	1.0f, -1.0f,  0.5773f,	  1.0f, 0.0f,
-	0.0f,  1.0f,  0.0f,	  0.5f, 1.0f,
+Vertex VertexData[4] =
+{ 
+	Vertex(glm::vec3(-1.0f, -1.0f, 0.5773f), glm::vec2(0.0f, 0.0f)),
+	Vertex(glm::vec3(0.0f, -1.0f, -1.15475f), glm::vec2(0.5f, 0.0f)),
+	Vertex(glm::vec3(1.0f, -1.0f, 0.5773f),  glm::vec2(1.0f, 0.0f)),
+	Vertex(glm::vec3(0.0f, 1.0f, 0.0f),      glm::vec2(0.5f, 1.0f))
 };
 static const GLsizei VertexSize = sizeof(VertexData);
 
@@ -140,6 +144,11 @@ static const GLsizei IndexSize = sizeof(IndexData);
 
 void DiffuseApp::init_buffer()
 {
+	//We calc the vertex normal 
+	unsigned int VertexCount = ARRAY_SIZE_IN_ELEMENTS(VertexData);
+	unsigned int IndexCount = ARRAY_SIZE_IN_ELEMENTS(IndexData);
+	CalcNormals(IndexData, IndexCount, VertexData, VertexCount);
+
 	//vbo are buffers that can be stored in video memory and provide the shortest access time to the GPU
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -152,7 +161,9 @@ void DiffuseApp::init_buffer()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	mat.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 0.5f);
+	light.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	mat.ambient = glm::vec4(0.1f);
+	mat.diffuse = glm::vec4(0.5f);
 }
 
 void DiffuseApp::init_vertexArray()
@@ -168,28 +179,34 @@ void DiffuseApp::init_vertexArray()
 	//Hint how opengl send the data
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);	
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(NULL + 3 * sizeof(GLfloat) ) );	
-
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);	
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(glm::vec3)) );
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(glm::vec3) + sizeof(glm::vec2)) );
+	
 	//disable it before use
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
-
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
 }
 
 void DiffuseApp::init_shader()
 {
-	TriangleShader.init();
-	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
-	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
-	TriangleShader.link();
-	TriangleShader.use();
-	TriangleShader.interfaceInfo();
-	program = TriangleShader.GetProgram();
-	mvp_loc = glGetUniformLocation(program, "mvp");
+	AppShader.init();
+	AppShader.attach(GL_VERTEX_SHADER, "triangle.vert");
+	AppShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
+	AppShader.link();
+	AppShader.use();
+	AppShader.interfaceInfo();
+	program = AppShader.GetProgram();
+	mvp_loc = glGetUniformLocation(program, "mvp");  
+	model_loc = glGetUniformLocation(program, "model");
 	tex_loc = glGetUniformLocation(program, "tex");
-	light.u_ambient_loc = glGetUniformLocation(program, "light.ambient");
-	mat.u_ambient_loc = glGetUniformLocation(program, "mat.ambient");
+	light.ambient_loc = glGetUniformLocation(program, "light.ambient");
+	light.diffuse_loc = glGetUniformLocation(program, "light.diffuse");
+	mat.ambient_loc = glGetUniformLocation(program, "mat.ambient");
+	mat.diffuse_loc = glGetUniformLocation(program, "mat.diffuse");
 
 }
 

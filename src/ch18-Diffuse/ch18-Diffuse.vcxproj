@@ -69,10 +69,6 @@
   <ItemGroup>
     <ClCompile Include="ch18-Diffuse.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="glDebug.h" />
-    <ClInclude Include="stepApp.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
