@@ -41,6 +41,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ch19-Specular", "src\ch19-S
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ch20-Point-Light", "src\ch20-Point-Light\ch20-Point-Light.vcxproj", "{2A38004D-5219-48DE-BB96-F31C6839FDD9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ch21-Spot-Light", "src\ch21-Spot-Light\ch21-Spot-Light.vcxproj", "{3B2E8F85-2A43-41F6-A797-636A81C8DC93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -127,6 +129,10 @@ Global
 		{2A38004D-5219-48DE-BB96-F31C6839FDD9}.Debug|Win32.Build.0 = Debug|Win32
 		{2A38004D-5219-48DE-BB96-F31C6839FDD9}.Release|Win32.ActiveCfg = Release|Win32
 		{2A38004D-5219-48DE-BB96-F31C6839FDD9}.Release|Win32.Build.0 = Release|Win32
+		{3B2E8F85-2A43-41F6-A797-636A81C8DC93}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3B2E8F85-2A43-41F6-A797-636A81C8DC93}.Debug|Win32.Build.0 = Debug|Win32
+		{3B2E8F85-2A43-41F6-A797-636A81C8DC93}.Release|Win32.ActiveCfg = Release|Win32
+		{3B2E8F85-2A43-41F6-A797-636A81C8DC93}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

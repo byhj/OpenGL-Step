@@ -40,6 +40,12 @@ struct Vertex
 		tex = mtex;
 		normal = glm::vec3(0.0f, 0.0f, 0.0f);
 	}
+	Vertex(glm::vec3 mpos, glm::vec2 mtex, glm::vec3 n)
+	{
+		pos = mpos;
+		tex = mtex;
+		normal = n;
+	}
 };
 
 //计算法线坐标

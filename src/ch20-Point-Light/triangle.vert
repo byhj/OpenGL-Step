@@ -12,7 +12,7 @@ out VS_OUT
 {
   vec2 tc;
   vec3 normal;
-  vec3 FragPos;
+  vec3 fragPos;
 }vs_out;
 
 void main(void)
@@ -20,7 +20,7 @@ void main(void)
    mat4 mv = view * model;
    vs_out.tc = TexCoord;
    vs_out.normal = mat3(mv) * Normal;
-   vs_out.FragPos = mat3(mv) * Position;
+   vs_out.fragPos = mat3(mv) * Position;
 
    mat4 mvp = proj * mv;
 

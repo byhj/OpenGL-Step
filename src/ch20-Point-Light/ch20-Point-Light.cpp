@@ -14,10 +14,13 @@
 #include "common/stepApp.h"
 
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
+glm::vec3 cameraPos   = glm::vec3(0.0f, 1.0f,  5.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+static const float FieldDepth = 20.0f;
+static const float FieldWidth = 10.0f;
 
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
@@ -25,6 +28,7 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
+static const int PointLightSize = 2;
 
 class DiffuseApp: public byhj::StepApp
 {
@@ -51,7 +55,8 @@ private:
 	GLuint viewPos_loc;
 
 	Shader AppShader;
-	byhj::Light light;
+	byhj::DirLight dirLight;
+	byhj::PointLight pLight[PointLightSize];
 	byhj::Material mat;
 };
 
@@ -87,8 +92,8 @@ void DiffuseApp::v_Render()
 	static glm::mat4 mone = glm::mat4(1.0f);
 
 	//You should add the translate to set last
-	glm::mat4 model = glm::translate(mone, glm::vec3(0.0f, 0.0f, -2.0f) )
-		* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
+	glm::mat4 model = glm::translate(mone, glm::vec3(-5.0f, 0.0f, -10.0f) );
+		//* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
 	static float currentTime = 0.0f;
 	currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
 	deltaTime = currentTime - lastFrame;
@@ -106,17 +111,47 @@ void DiffuseApp::v_Render()
 	glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix3fv(viewPos_loc, 1, GL_FALSE, &camera.Position[0]);
 
-	glUniform3fv(light.ambient_loc, 1, &light.ambient[0]);
-	glUniform3fv(light.diffuse_loc, 1, &light.diffuse[0]);
-	glUniform3fv(light.specular_loc, 1, &light.specular[0]);
+	glUniform3fv(dirLight.ambient_loc, 1, &dirLight.ambient[0]);
+	glUniform3fv(dirLight.diffuse_loc, 1, &dirLight.diffuse[0]);
+	glUniform3fv(dirLight.specular_loc, 1, &dirLight.specular[0]);
 	glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
 	glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
 	glUniform3fv(mat.specular_loc, 1, &mat.specular[0]);
 	glUniform1f( mat.shininess_loc, mat.shininess);
-
 	glUniform1i(tex_loc, 0);
 
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+	// Positions of the point lights
+	glm::vec3 pointLightPositions[2] = 
+	{
+		glm::vec3( 3.0f, -1.0f, FieldDepth * cosf(currentTime) / 2.0f),
+		glm::vec3( -3.0f, -1.0f, FieldDepth * sinf(currentTime) / 2.0f),
+	};
+	glm::vec3 pointLightColors[2] = 
+	{
+		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f),
+	};
+
+	// Point light 1
+	glUniform3f(glGetUniformLocation(program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
+	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.ambient"), pointLightColors[0].x ,  pointLightColors[0].y ,  pointLightColors[0].z );		
+	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
+	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
+	glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
+	glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
+	glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
+
+	// Point light 2				 program
+	glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
+	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.ambient"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);		
+	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
+	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
+	glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
+	glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
+	glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//Swap the buffer to show and make current window rediaplay
 	glutSwapBuffers();
@@ -130,30 +165,23 @@ void DiffuseApp::v_Shutdown()
 	glDeleteBuffers(1, &vbo);
 }
 
-Vertex VertexData[4] =
-{ 
-	Vertex(glm::vec3(-1.0f, -1.0f, 0.5773f), glm::vec2(0.0f, 0.0f)),
-	Vertex(glm::vec3(0.0f, -1.0f, -1.15475f), glm::vec2(0.5f, 0.0f)),
-	Vertex(glm::vec3(1.0f, -1.0f, 0.5773f),  glm::vec2(1.0f, 0.0f)),
-	Vertex(glm::vec3(0.0f, 1.0f, 0.0f),      glm::vec2(0.5f, 1.0f))
+const glm::vec3 Normal = glm::vec3(0.0, 1.0f, 0.0f);
+Vertex VertexData[6] = 
+{
+	Vertex(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f), Normal),
+	Vertex(glm::vec3(0.0f, 0.0f, FieldDepth), glm::vec2(0.0f, 1.0f), Normal),
+	Vertex(glm::vec3(FieldWidth, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), Normal),
+
+	Vertex(glm::vec3(FieldWidth, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f), Normal),
+	Vertex(glm::vec3(0.0f, 0.0f, FieldDepth), glm::vec2(0.0f, 1.0f), Normal),
+	Vertex(glm::vec3(FieldWidth, 0.0f, FieldDepth), glm::vec2(1.0f, 1.0f), Normal)
 };
 static const GLsizei VertexSize = sizeof(VertexData);
 
-static const GLuint IndexData[] = 
-{
-	0, 3, 1,
-	1, 3, 2,
-	2, 3, 0,
-	0, 1, 2
-};
-static const GLsizei IndexSize = sizeof(IndexData);
+
 
 void DiffuseApp::init_buffer()
 {
-	//We calc the vertex normal 
-	unsigned int VertexCount = ARRAY_SIZE_IN_ELEMENTS(VertexData);
-	unsigned int IndexCount = ARRAY_SIZE_IN_ELEMENTS(IndexData);
-	CalcNormals(IndexData, IndexCount, VertexData, VertexCount);
 
 	//vbo are buffers that can be stored in video memory and provide the shortest access time to the GPU
 	glGenBuffers(1, &vbo);
@@ -161,18 +189,14 @@ void DiffuseApp::init_buffer()
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	light.ambient  = glm::vec3(1.0f);
-	light.diffuse  = glm::vec3(1.0f);
-	light.specular = glm::vec3(1.0f);
+	dirLight.ambient  = glm::vec3(1.0f);
+	dirLight.diffuse  = glm::vec3(1.0f);
+	dirLight.specular = glm::vec3(1.0f);
 	mat.ambient    = glm::vec3(0.1f);
 	mat.diffuse    = glm::vec3(0.5f);
 	mat.specular   = glm::vec3(1.0f);
-	mat.shininess  = 16.0f;  
+	mat.shininess  = 32.0f;  
 }
 
 void DiffuseApp::init_vertexArray()
@@ -182,7 +206,6 @@ void DiffuseApp::init_vertexArray()
 	glBindVertexArray(vao);
 
 	//We bind the buffer, change vao status
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//Hint how opengl send the data
@@ -212,18 +235,20 @@ void DiffuseApp::init_shader()
 
 	proj_loc            = glGetUniformLocation(program, "proj");  
 	view_loc            = glGetUniformLocation(program, "view");  
-	model_loc          = glGetUniformLocation(program, "model");
-	tex_loc            = glGetUniformLocation(program, "tex");
-	viewPos_loc        = glGetUniformLocation(program, "viewPos");
-	light.ambient_loc  = glGetUniformLocation(program, "light.ambient");
-	light.diffuse_loc  = glGetUniformLocation(program, "light.diffuse");
-	light.specular_loc = glGetUniformLocation(program, "light.specular");
+	model_loc           = glGetUniformLocation(program, "model");
+	tex_loc             = glGetUniformLocation(program, "tex");
+	viewPos_loc         = glGetUniformLocation(program, "viewPos");
+
+	dirLight.ambient_loc  = glGetUniformLocation(program, "dirLight.ambient");
+	dirLight.diffuse_loc  = glGetUniformLocation(program, "dirLight.diffuse");
+	dirLight.specular_loc = glGetUniformLocation(program, "dirLight.specular");
+
 	mat.ambient_loc    = glGetUniformLocation(program, "mat.ambient");
 	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
 	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
 	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
 
-		AppShader.interfaceInfo();
+	AppShader.interfaceInfo();
 }
 
 void DiffuseApp::init_texture()
@@ -251,10 +276,10 @@ void DiffuseApp::v_Keyboard(unsigned char key, int x, int y)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 		break;
 	case 'l':
-		light.ambient += glm::vec3(0.1f);
+		dirLight.ambient += glm::vec3(0.1f);
 		break;
 	case 'k':
-		light.ambient -= glm::vec3(0.1f);
+		dirLight.ambient -= glm::vec3(0.1f);
 		break;
 	}
 
