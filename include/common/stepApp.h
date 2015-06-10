@@ -84,7 +84,7 @@ namespace byhj
 			std::cout << "------------------------------------------------------------------------------" << std::endl;
 			//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 			v_Init();
-		    CheckDebugLog();
+		   // CheckDebugLog();
 
 			glutDisplayFunc(glut_render);
 			glutKeyboardFunc(glut_keyboard);

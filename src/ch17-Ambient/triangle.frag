@@ -7,12 +7,12 @@ uniform sampler2D tex;
 
  struct Material 
 {
-	vec4 ambient;
+	vec3 ambient;
 };
 
 struct Light 
 {
-   vec4 ambient;
+   vec3 ambient;
 };
 
 uniform Material mat;
@@ -20,6 +20,6 @@ uniform Light light;
 
 void main(void)
 {
-   vec4 ambient = light.ambient * mat.ambient;
-   fragColor =  ambient * texture(tex, tc);
+   vec3 ambient = light.ambient * mat.ambient;
+   fragColor =  vec4(ambient, 1.0f) * texture(tex, tc);
 }

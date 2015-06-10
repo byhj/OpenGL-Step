@@ -104,12 +104,12 @@ void DiffuseApp::v_Render()
 	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, &mvp[0][0] );
 	glUniformMatrix4fv(model_loc, 1, GL_FALSE, &world[0][0]);
 
-	glUniform4fv(light.ambient_loc, 1, &light.ambient[0]);
-	glUniform4fv(light.diffuse_loc, 1, &light.diffuse[0]);
-	glUniform4fv(mat.ambient_loc, 1, &mat.ambient[0]);
-	glUniform4fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
+	glUniform3fv(light.ambient_loc, 1, &light.ambient[0]);
+	glUniform3fv(light.diffuse_loc, 1, &light.diffuse[0]);
+	glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
+	glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
 	glUniform1i(tex_loc, 0);
-
+	CheckDebugLog();
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 
 	//Swap the buffer to show and make current window rediaplay
@@ -160,10 +160,10 @@ void DiffuseApp::init_buffer()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	light.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	mat.ambient = glm::vec4(0.1f);
-	mat.diffuse = glm::vec4(0.5f);
+	light.ambient = glm::vec3(1.0f);
+	light.diffuse = glm::vec3(1.0f);
+	mat.ambient   = glm::vec3(0.1f);
+	mat.diffuse   = glm::vec3(0.5f);
 }
 
 void DiffuseApp::init_vertexArray()
@@ -235,10 +235,10 @@ void DiffuseApp::v_Keyboard(unsigned char key, int x, int y)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 		break;
 	case 'l':
-		light.ambient += glm::vec4(0.1f);
+		light.ambient += glm::vec3(0.1f);
 		break;
 	case 'k':
-		light.ambient -= glm::vec4(0.1f);
+		light.ambient -= glm::vec3(0.1f);
 		break;
 	}
 
