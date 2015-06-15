@@ -19,7 +19,7 @@ void main(void)
 {
    mat4 mv = view * model;
    vs_out.tc = TexCoord;
-   vs_out.normal = mat3(mv) * Normal;
+   vs_out.normal = transpose(inverse(mat3(mv))) * Normal;
    vs_out.fragPos = mat3(mv) * Position;
 
    mat4 mvp = proj * mv;

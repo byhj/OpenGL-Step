@@ -1,169 +1,160 @@
+#include <common/stepApp.h>
 #include <common/shader.h>
-#include <common/common.h>
 #include <common/camera.h>
-#include <common/loadTexture.h>
+#include <common/Texture.h>
 #include <common/light.h>
-
-#include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
+#include <common/common.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <common/glDebug.h>
-#include "common/stepApp.h"
-
-
-Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
-glm::vec3 cameraPos   = glm::vec3(0.0f, 1.0f,  5.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
 static const float FieldDepth = 20.0f;
 static const float FieldWidth = 10.0f;
 
-bool keys[1024];
-GLfloat lastX = 400, lastY = 300;
-bool firstMouse = true;
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
-
-static const int PointLightSize = 2;
-
-class DiffuseApp: public byhj::StepApp
+class TriangleApp: public byhj::Application
 {
 public:
-	DiffuseApp():AppShader("Diffuse Shader") {};
-	~DiffuseApp(){};
+	TriangleApp() :TriangleShader("Triangle Shader"), camera(glm::vec3(0.0f, 1.0f, 5.0f))
+	{
+		windowInfo.title += "16-Texture";
+		lastX = GetScreenWidth() / 2.0f;
+		lastY = GetScreenHeight() / 2.0f;
+		firstMouse = true;
+		deltaTime = 0.0f;
+		lastTime = 0.0f;
+		for (int i = 0; i != 1024; ++ i)
+			keys[i] = false;
+	}
+	~TriangleApp() {}
 
-	void v_Init();
-	void v_Render();
-	void v_Shutdown();
-	void v_Keyboard(unsigned char key, int x, int y);
-	void v_MouseWheel(int wheel, int direction, int x, int y);
-	void v_PassiveMouse(int xpos, int ypos);
+	void v_Init()
+	{
+		init_buffer();
+		init_vertexArray();
+		init_shader();
+		init_texture();
+		glEnable(GL_CULL_FACE);
 
-	void init_buffer();
-	void init_vertexArray();
-	void init_texture();
-	void init_shader();
+		//set the background color 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	}
+	void v_Render()
+	{
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		//We use current shader program and vao status to render the scene
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		glBindTexture(GL_TEXTURE_2D, tex);
+
+		GLfloat currentTime = glfwGetTime();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		static GLfloat time = 0.0f;
+		time += 1.0f;
+
+		//You should add the translate to set last
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, -10.0f) );
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 100.0f);
+
+		//Notice the row-major or column-major 
+		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj[0][0] );
+		glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0] );
+		glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
+		glUniform3fv(viewPos_loc, 1, &camera.Position[0]);
+
+		glUniform3fv(dirLight.ambient_loc, 1, &dirLight.ambient[0]);
+		glUniform3fv(dirLight.diffuse_loc, 1, &dirLight.diffuse[0]);
+		glUniform3fv(dirLight.specular_loc, 1, &dirLight.specular[0]);
+		glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
+		glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
+		glUniform3fv(mat.specular_loc, 1, &mat.specular[0]);
+		glUniform1f( mat.shininess_loc, mat.shininess);
+		glUniform1i(tex_loc, 0);
+
+		// Positions of the point lights
+		glm::vec3 pointLightPositions[2] = 
+		{
+			glm::vec3(5.0f, 1.0f,  FieldDepth * cosf(currentTime)),
+			glm::vec3(3.0f, 1.0f, FieldDepth * sinf(currentTime)),
+		};
+
+		glm::vec3 pointLightColors[2] = 
+		{
+			glm::vec3(0.0f, 0.0f, 1.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f),
+		};
+
+		// Point light 1
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].ambient"), pointLightColors[0].x ,  pointLightColors[0].y ,  pointLightColors[0].z );		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
+
+		// Point light 2				
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].ambient"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
+
+		glUniform1i(tex_loc, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	}
+
+	void v_Shutdown()
+	{		
+		glDeleteProgram(program);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteBuffers(1, &vbo);
+	}
+	void v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
+	void v_Movement(GLFWwindow *window);
+	void v_MouseCallback(GLFWwindow* window, double xpos, double ypos);
+	void v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 private:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+	void init_texture();
+private:
+	// Camera
+	Camera camera;
+	bool keys[1024];
+	GLfloat lastX, lastY ;
+	bool firstMouse;
+	GLfloat deltaTime;
+	GLfloat lastTime;
+
+	Shader TriangleShader;
 	GLuint program;
-	GLuint vao, vbo, ibo;
-	GLuint tex, tex_loc, proj_loc,view_loc, model_loc;
-	GLuint viewPos_loc;
+	GLuint vbo, vao, ibo;
+	GLuint mvp_loc, tex_loc, model_loc;
+	GLuint proj_loc, view_loc, viewPos_loc;
+	GLuint tex;
 
-	Shader AppShader;
+	enum PointLight
+	{
+		Size = 4
+	};
 	byhj::DirLight dirLight;
-	byhj::PointLight pLight[PointLightSize];
+	byhj::PointLight pLight[PointLight::Size];
 	byhj::Material mat;
+
+
 };
-
-CALL_MAIN(DiffuseApp);
-
-void  DiffuseApp::v_Init()
-{
-
-	glEnable(GL_CULL_FACE);
-	init_buffer();
-	init_vertexArray();
-	init_shader();
-	init_texture();
-
-	//set the background color 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-}
-
-
-void DiffuseApp::v_Render()
-{
-	//clear the color buffer to backgroud color
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	//We use current shader program and vao status to render the scene
-	glUseProgram(program);
-	glBindVertexArray(vao);
-	glBindTexture(GL_TEXTURE_2D, tex);
-
-	static GLfloat time = 0.0f;
-	time += 0.1f;
-	static glm::mat4 mone = glm::mat4(1.0f);
-
-	//You should add the translate to set last
-	glm::mat4 model = glm::translate(mone, glm::vec3(-5.0f, 0.0f, -10.0f) );
-		//* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
-	static float currentTime = 0.0f;
-	currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-	deltaTime = currentTime - lastFrame;
-	deltaTime *= 10.0f;
-	lastFrame = currentTime;
-
-	//glm::mat4 view = glm::lookAt(g_Camera.GetCamPos(), g_Camera.GetCamTarget(), g_Camera.GetCamUp());
-	//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), g_Aspect, 1.0f, 100.0f);
-
-	//Notice the row-major or column-major 
-	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj[0][0] );
-	glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0] );
-	glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
-	glUniformMatrix3fv(viewPos_loc, 1, GL_FALSE, &camera.Position[0]);
-
-	glUniform3fv(dirLight.ambient_loc, 1, &dirLight.ambient[0]);
-	glUniform3fv(dirLight.diffuse_loc, 1, &dirLight.diffuse[0]);
-	glUniform3fv(dirLight.specular_loc, 1, &dirLight.specular[0]);
-	glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
-	glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
-	glUniform3fv(mat.specular_loc, 1, &mat.specular[0]);
-	glUniform1f( mat.shininess_loc, mat.shininess);
-	glUniform1i(tex_loc, 0);
-
-	// Positions of the point lights
-	glm::vec3 pointLightPositions[2] = 
-	{
-		glm::vec3( 3.0f, -1.0f, FieldDepth * cosf(currentTime) / 2.0f),
-		glm::vec3( -3.0f, -1.0f, FieldDepth * sinf(currentTime) / 2.0f),
-	};
-	glm::vec3 pointLightColors[2] = 
-	{
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-	};
-
-	// Point light 1
-	glUniform3f(glGetUniformLocation(program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
-	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.ambient"), pointLightColors[0].x ,  pointLightColors[0].y ,  pointLightColors[0].z );		
-	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
-	glUniform3f(glGetUniformLocation(program, "pointLights[0].Light.specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
-	glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
-	glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
-
-	// Point light 2				 program
-	glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
-	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.ambient"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);		
-	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
-	glUniform3f(glGetUniformLocation(program, "pointLights[1].Light.specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
-	glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
-	glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
-
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	//Swap the buffer to show and make current window rediaplay
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
-
-void DiffuseApp::v_Shutdown()
-{
-	glDeleteProgram(program);
-	glDeleteVertexArrays(1, &vao);
-	glDeleteBuffers(1, &vbo);
-}
+CALL_MAIN(TriangleApp);
 
 const glm::vec3 Normal = glm::vec3(0.0, 1.0f, 0.0f);
 Vertex VertexData[6] = 
@@ -178,20 +169,16 @@ Vertex VertexData[6] =
 };
 static const GLsizei VertexSize = sizeof(VertexData);
 
-
-
-void DiffuseApp::init_buffer()
+void TriangleApp::init_buffer()
 {
-
 	//vbo are buffers that can be stored in video memory and provide the shortest access time to the GPU
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-
-	dirLight.ambient  = glm::vec3(1.0f);
-	dirLight.diffuse  = glm::vec3(1.0f);
+	dirLight.ambient  = glm::vec3(0.1f);
+	dirLight.diffuse  = glm::vec3(0.5f);
 	dirLight.specular = glm::vec3(1.0f);
 	mat.ambient    = glm::vec3(0.1f);
 	mat.diffuse    = glm::vec3(0.5f);
@@ -199,13 +186,13 @@ void DiffuseApp::init_buffer()
 	mat.shininess  = 32.0f;  
 }
 
-void DiffuseApp::init_vertexArray()
+
+
+void TriangleApp::init_vertexArray()
 {
 	//vao is manage the opengl status
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-
-	//We bind the buffer, change vao status
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//Hint how opengl send the data
@@ -215,7 +202,7 @@ void DiffuseApp::init_vertexArray()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);	
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(glm::vec3)) );
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), BUFFER_OFFSET(sizeof(glm::vec3) + sizeof(glm::vec2)) );
-	
+
 	//disable it before use
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
@@ -223,74 +210,75 @@ void DiffuseApp::init_vertexArray()
 	glDisableVertexAttribArray(2);
 }
 
-void DiffuseApp::init_shader()
+void TriangleApp::init_shader()
 {
-	AppShader.init();
-	AppShader.attach(GL_VERTEX_SHADER, "triangle.vert");
-	AppShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
-	AppShader.link();
-	AppShader.use();
+	TriangleShader.init();
+	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
+	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
+	TriangleShader.link();
+	program = TriangleShader.GetProgram();
 
-	program = AppShader.GetProgram();
-
-	proj_loc            = glGetUniformLocation(program, "proj");  
-	view_loc            = glGetUniformLocation(program, "view");  
-	model_loc           = glGetUniformLocation(program, "model");
-	tex_loc             = glGetUniformLocation(program, "tex");
-	viewPos_loc         = glGetUniformLocation(program, "viewPos");
+	proj_loc           = glGetUniformLocation(program, "proj");  
+	view_loc           = glGetUniformLocation(program, "view");  
+	model_loc          = glGetUniformLocation(program, "model");
+	tex_loc            = glGetUniformLocation(program, "tex");
+	viewPos_loc        = glGetUniformLocation(program, "viewPos");
 
 	dirLight.ambient_loc  = glGetUniformLocation(program, "dirLight.ambient");
 	dirLight.diffuse_loc  = glGetUniformLocation(program, "dirLight.diffuse");
 	dirLight.specular_loc = glGetUniformLocation(program, "dirLight.specular");
+	dirLight.specular_loc = glGetUniformLocation(program, "dirLight.direction");
 
 	mat.ambient_loc    = glGetUniformLocation(program, "mat.ambient");
 	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
 	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
 	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
-
-	AppShader.interfaceInfo();
 }
 
-void DiffuseApp::init_texture()
+
+void TriangleApp::init_texture()
 {
 	tex = loadTexture("../../media/texture/test.png");
 }
 
-void DiffuseApp::v_Keyboard(unsigned char key, int x, int y)
+
+// Moves/alters the camera positions based on user input
+void TriangleApp::v_Movement(GLFWwindow *window)
 {
-	switch (key)
-	{
-	case 27: // Escape key
-		exit (0);
-		break;
-	case 'w':
+	// Camera controls
+	if(keys[GLFW_KEY_W])
 		camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-	case 's':
+	if(keys[GLFW_KEY_S])
 		camera.ProcessKeyboard(BACKWARD, deltaTime);
-		break;
-	case 'd':
+	if(keys[GLFW_KEY_A])
 		camera.ProcessKeyboard(LEFT, deltaTime);
-		break;
-	case 'a':
+	if(keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(RIGHT, deltaTime);
-		break;
-	case 'l':
-		dirLight.ambient += glm::vec3(0.1f);
-		break;
-	case 'k':
-		dirLight.ambient -= glm::vec3(0.1f);
-		break;
+	if(keys[GLFW_KEY_L])
+			dirLight.ambient += glm::vec3(0.1f);
+	if(keys[GLFW_KEY_I])
+			dirLight.ambient -= glm::vec3(0.1f);
+	if (keys[GLFW_KEY_C])
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		camera.ctr = false;
 	}
-
 }
 
-void DiffuseApp::v_MouseWheel(int wheel, int direction, int x, int y)
+// Is called whenever a key is pressed/released via GLFW
+void TriangleApp::v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	camera.ProcessMouseScroll(direction);
+	//cout << key << std::endl;
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if(action == GLFW_PRESS)
+		keys[key] = true;
+	else if(action == GLFW_RELEASE)
+		keys[key] = false;	
 }
 
-void DiffuseApp::v_PassiveMouse(int xpos, int ypos)
+void TriangleApp::v_MouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	if(firstMouse)
 	{
@@ -301,9 +289,14 @@ void DiffuseApp::v_PassiveMouse(int xpos, int ypos)
 
 	GLfloat xoffset = xpos - lastX;
 	GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+
 	lastX = xpos;
 	lastY = ypos;
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}	
 
-	camera.ProcessMouseMovement(-xoffset, -yoffset);
+
+void TriangleApp::v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }
-

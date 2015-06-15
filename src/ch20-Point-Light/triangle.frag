@@ -27,6 +27,7 @@ struct DirLight
    vec3 ambient;
    vec3 diffuse;
    vec3 specular;
+   vec3 direction;
 };
 
 ////////////////////Point Light/////////////////////////////////////
@@ -37,7 +38,9 @@ struct PointLight
    float linear;
    float quadratic;
 
-   DirLight Light;
+   vec3 ambient;
+   vec3 diffuse;
+   vec3 specular;
 };
 
 
@@ -48,7 +51,7 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 
 uniform sampler2D tex;
 uniform vec3 LightDir = vec3(0.0f, 1.0f, -1.0f);
-uniform vec3 viewPos = vec3(0.0f, 0.0f, 3.0f);
+uniform vec3 viewPos = vec3(0.0f, 1.0f, 3.0f);
 
 ////////////////////////////Function//////////////////////////////////
 vec3 CalcDirLight(DirLight dirLight, vec3 normal, vec3 viewDir);
@@ -103,9 +106,22 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
      // Attenuation
     float dis = length(light.position - fragPos);
     float attenuation = 1.0f / (light.constant + light.linear * dis + light.quadratic * (dis * dis));    
-   
-    vec3 result = CalcDirLight(light.Light, normal, viewDir);
-	result *= attenuation;
+  
+   //Ambient
+   vec3 ambient  = light.ambient * mat.ambient;
+   //Diffuse
+   vec3 lightDir  = normalize(light.position - fs_in.fragPos);
+   float diff =  max(0.0f, dot(lightDir, normal) );
+   vec3 diffuse  = diff * light.diffuse * mat.diffuse ;
+    
+   //Specular
+   vec3 reflectDir = reflect(-lightDir, normal);
+   float spec =  pow( max( dot(reflectDir, viewDir), 0.0f ), mat.shininess);
+   vec3 specular = spec * light.specular * mat.specular ;
+
+   //Add all light 
+   vec3 result  = ambient + diffuse + specular;
+   result *= attenuation;
 
 	return result;
 }
