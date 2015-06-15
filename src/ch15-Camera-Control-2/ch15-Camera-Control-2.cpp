@@ -1,54 +1,101 @@
+#include <common/stepApp.h>
 #include <common/shader.h>
-#include <common/common.h>
 #include <common/camera.h>
-#include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#ifdef WIN32
-//If PLATFORM IS WIN32, we put the render window to the middle of window
-const int g_ScreenWidth = GetSystemMetrics(SM_CXSCREEN) * 0.75;
-const int g_ScreenHeight = GetSystemMetrics(SM_CYSCREEN) * 0.75;
-const GLfloat g_Aspect = float(g_ScreenWidth) / float(g_ScreenHeight);
-const int g_PosX = (GetSystemMetrics(SM_CXSCREEN) - g_ScreenWidth) / 2;
-const int g_PosY = (GetSystemMetrics(SM_CYSCREEN) - g_ScreenHeight) / 2;
+class TriangleApp: public byhj::Application
+{
+public:
+	TriangleApp() :TriangleShader("Triangle Shader")
+	{
+		windowInfo.title += "12-Perspective";
+		lastX = GetScreenWidth() / 2.0f;
+		lastY = GetScreenHeight() / 2.0f;
+		firstMouse = true;
+		deltaTime = 0.0f;
+		lastFrame = 0.0f;
+		for (int i = 0; i != 1024; ++ i)
+			keys[i] = false;
+	}
+	~TriangleApp() {}
 
-#else
-const int g_ScreenWidth = 800;
-const int g_ScreenHeight = 600;
-const int g_PosX = 300;
-const int g_PosY = 100;
-#endif
+	void v_Init()
+	{
+		init_buffer();
+		init_vertexArray();
+		init_shader();
 
-//Window Title
-const char *g_pWindowTitle = "ch3-Triangle";
-static Shader TriangleShader("Triangle Shader");
-static GLuint g_vbo = 0, g_ibo = 0, g_program = 0, g_vao = 0;
-static GLuint g_mvp_loc = -1;
+		//set the background color 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	void v_Render()
+	{
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-bool keys[1024];
-GLfloat lastX = 400, lastY = 300;
-bool firstMouse = true;
+		//We use current shader program and vao status to render the scene
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
+		static GLfloat time = 0.0f;
+		time += 1.0f;
+		static glm::mat4 mone = glm::mat4(1.0f);
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+		//You should add the translate to set last
+		glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -5.0f) )
+			* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
 
-static GLfloat g_step = 0.0f;
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 100.0f);
+		glm::mat4 mvp = proj * view * world;
+
+		//Notice the row-major or column-major 
+		glUniformMatrix4fv(0, 1, GL_FALSE, &mvp[0][0] );
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+	}
+
+	void v_Shutdown()
+	{		
+		glDeleteProgram(program);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteBuffers(1, &vbo);
+	}
+	void v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
+	void v_Movement(GLFWwindow *window);
+	void v_MouseCallback(GLFWwindow* window, double xpos, double ypos);
+	void v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+private:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+
+private:
+	// Camera
+	Camera camera;
+	bool keys[1024];
+	GLfloat lastX, lastY ;
+	bool firstMouse;
+	GLfloat deltaTime;
+	GLfloat lastFrame;
+
+	Shader TriangleShader;
+	GLuint program;
+	GLuint vbo, vao, ibo;
+	GLuint model_loc;
+};
+CALL_MAIN(TriangleApp);
 
 static const GLfloat VertexData[] = 
 {
 	-1.0f, -1.0f,  0.5773f,
-	 0.0f, -1.0f, -1.15475f,
-	 1.0f, -1.0f,  0.5773f,
-	 0.0f,  1.0f,  0.0f,
+	0.0f, -1.0f, -1.15475f,
+	1.0f, -1.0f,  0.5773f,
+	0.0f,  1.0f,  0.0f,
 };
 static const GLsizei VertexSize = sizeof(VertexData);
 
@@ -61,181 +108,97 @@ static const GLuint IndexData[] =
 };
 static const GLsizei IndexSize = sizeof(IndexData);
 
-void init_buffer()
+void TriangleApp::init_buffer()
 {
 	//vbo are buffers that can be stored in video memory and provide the shortest access time to the GPU
-	glGenBuffers(1, &g_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glGenBuffers(1, &g_ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, IndexSize, IndexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void init_vertexArray()
+void TriangleApp::init_vertexArray()
 {
 	//vao is manage the opengl status
-	glGenVertexArrays(1, &g_vao);
-	glBindVertexArray(g_vao);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
-	//We bind the buffer, change vao status
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
-
-	//Hint how opengl send the data
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);	
-	
-	//disable it before use
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	
 }
 
-void init_shader()
+void TriangleApp::init_shader()
 {
 	TriangleShader.init();
 	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
 	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
 	TriangleShader.link();
-	g_program = TriangleShader.GetProgram();
-	g_mvp_loc = glGetUniformLocation(g_program, "mvp");
-	if (g_mvp_loc == -1)
+	program = TriangleShader.GetProgram();
+	model_loc = glGetUniformLocation(program, "model");
+}
+
+
+// Moves/alters the camera positions based on user input
+void TriangleApp::v_Movement(GLFWwindow *window)
+{
+	// Camera controls
+	if(keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if(keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if(keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if(keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (keys[GLFW_KEY_C])
 	{
-		std::cerr << "Can not get the uniform location." << std::endl;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		camera.ctr = false;
 	}
-
 }
 
-void init()
+// Is called whenever a key is pressed/released via GLFW
+void TriangleApp::v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	//cout << key << std::endl;
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
 
-#ifdef _DEBUG
-	videoCardInfo();
-#endif
+	if(action == GLFW_PRESS)
+		keys[key] = true;
+	else if(action == GLFW_RELEASE)
+		keys[key] = false;	
+}
 
-	GLenum res = glewInit();
-	if (res != GLEW_OK)
+void TriangleApp::v_MouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	if(firstMouse)
 	{
-		std::cerr << "Error:" << glewGetErrorString(res) << std::endl;
-		return;
-	}
-	glEnable(GL_CULL_FACE);
-	init_buffer();
-	init_vertexArray();
-	init_shader();
-
-	//set the background color 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-
-void render()
-{
-	//clear the color buffer to backgroud color
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	//We use current shader program and vao status to render the scene
-	glUseProgram(g_program);
-	glBindVertexArray(g_vao);
-
-	static GLfloat time = 0.0f;
-	time += 0.1f;
-	static glm::mat4 mone = glm::mat4(1.0f);
-
-	//You should add the translate to set last
-	glm::mat4 world = glm::translate(mone, glm::vec3(0.0f, 0.0f, -5.0f) )
-		* glm::rotate(mone, glm::radians(time), glm::vec3(0.0f, 1.0f, 0.0f) );
-	static float currentTime = 0.0f;
-	currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-	deltaTime = currentTime - lastFrame;
-	deltaTime *= 10.0f;
-	lastFrame = currentTime;
-
-	//glm::mat4 view = glm::lookAt(g_Camera.GetCamPos(), g_Camera.GetCamTarget(), g_Camera.GetCamUp());
-	//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), g_Aspect, 1.0f, 100.0f);
-	glm::mat4 mvp = proj * view * world;
-
-					//Notice the row-major or column-major 
-	glUniformMatrix4fv(0, 1, GL_FALSE, &mvp[0][0] );
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-
-	//Swap the buffer to show and make current window rediaplay
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
-
-void keyboard(unsigned char key, int x, int y)
-{
-	switch (key)
-	{
-	    case 'w':
-			camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-
-		case 's':
-			camera.ProcessKeyboard(BACKWARD, deltaTime);
-		break;
-
-		case 'd':
-			camera.ProcessKeyboard(LEFT, deltaTime);
-	    break;
-
-		case 'a':
-			camera.ProcessKeyboard(RIGHT, deltaTime);
-		break;
-	}
-	
-}
-
-void mouseWheel(int wheel, int direction, int x, int y)
-{
-	camera.ProcessMouseScroll(direction);
-}
-
-void passiveMouse(int xpos, int ypos)
-{
-		if(firstMouse)
-		{
-			lastX = xpos;
-			lastY = ypos;
-			firstMouse = false;
-		}
-
-		GLfloat xoffset = xpos - lastX;
-		GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
-
 		lastX = xpos;
 		lastY = ypos;
+		firstMouse = false;
+	}
 
-		camera.ProcessMouseMovement(-xoffset, -yoffset);
-}
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
 
-void shutdown()
-{ 
-	glDeleteProgram(g_program);
-	glDeleteVertexArrays(1, &g_vao);
-	glDeleteBuffers(1, &g_vbo);
-}
+	lastX = xpos;
+	lastY = ypos;
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}	
 
-int main(int argc, char **argv)
+
+void TriangleApp::v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowSize(g_ScreenWidth, g_ScreenHeight);
-	glutInitWindowPosition(g_PosX, g_PosY);
-	glutCreateWindow(g_pWindowTitle);
-	init();
-	glutDisplayFunc(render);
-	glutKeyboardFunc(keyboard);
-	glutPassiveMotionFunc(passiveMouse);
-	glutMouseWheelFunc(mouseWheel);
-	glutIdleFunc(render);
-	glutMainLoop();
-	shutdown();
+
+	camera.ProcessMouseScroll(yoffset);
 }
