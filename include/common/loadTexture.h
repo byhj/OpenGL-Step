@@ -1,140 +1,106 @@
-#include <IL/il.h>
+#ifndef LOADTEXTURE_H
+#define LOADTEXTURE_H
 
-GLuint loadTexture(const  char* theFileName)
+#include <iostream>
+#include <GL/glew.h>
+#include <SOIL.h>
+#include <vector>
+#include <string>
+
+GLuint loadTexture(const char * textureFile)
 {
-	GLuint textureID;			// Create a texture ID as a GLuint
-	ILuint imageID;				// Create an image ID as a ULuint
-	ilInit();   //初始化IL
-	ilGenImages(1, &imageID); 		// Generate the image ID
-	ilBindImage(imageID); 			// Bind the image
-	ILboolean success = ilLoadImage(theFileName); 	// Load the image file
+	int width, height;
+	unsigned char*image = SOIL_load_image(textureFile, &width, &height, 0, SOIL_LOAD_RGB);
+	if (!image)
+		std::cout << "Faile to load the file:" << textureFile << std::endl;
+	GLuint texture;
+	
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-	if (success) {
-		glGenTextures(1, &textureID); //创建Opengl纹理接口
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		//设置纹理的过滤和环绕模式
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//将加载的纹理数据转化为OpenGL格式
- 	    ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-		//将数据传入纹理对象中
-		glTexImage2D(GL_TEXTURE_2D, 				// Type of texture
-					 0,				// Pyramid level (for mip-mapping) - 0 is the top level
-					 ilGetInteger(IL_IMAGE_FORMAT),	// Internal pixel format to use. Can be a generic type like GL_RGB or GL_RGBA, or a sized type
-					 ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-					 ilGetInteger(IL_IMAGE_HEIGHT),	// Image height
-					 0,				// Border width in pixels (can either be 1 or 0)
-					 ilGetInteger(IL_IMAGE_FORMAT),	// Format of image pixel data
-					 GL_UNSIGNED_BYTE,		// Image data type
-					 ilGetData());			// The actual image data itself
- 	}
-	else 
-		std::cout << "Fail to load the texture!" << std::endl;
- 
- 	ilDeleteImages(1, &imageID); // Because we have already copied image data into texture data we can release memory used by image.
-	std::cout << "Texture creation successful." << std::endl;
-	return textureID; // 返回加载纹理索引
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0); 
+  
+	return texture;
 }
 
-
-GLuint loadTexture(const  char* theFileName, GLuint target)
+// This function loads a texture from file. Note: texture loading functions like these are usually 
+// managed by a 'Resource Manager' that manages all resources (like textures, models, audio). 
+// For learning purposes we'll just define it as a utility function.
+GLuint loadTextureGamma(GLchar* path, bool gammaCorrection)
 {
-	GLuint textureID;			// Create a texture ID as a GLuint
-	ILuint imageID;				// Create an image ID as a ULuint
-	ilInit();   //初始化IL
-	ilGenImages(1, &imageID); 		// Generate the image ID
-	ilBindImage(imageID); 			// Bind the image
-	ILboolean success = ilLoad(IL_DDS,theFileName); 	// Load the image file
+	// Generate texture ID and load texture data 
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	int width, height;
+	unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
+	// Assign texture to ID
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, gammaCorrection ? GL_SRGB : GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
-	if (success) {
-		glGenTextures(1, &textureID); //创建Opengl纹理接口
-		glBindTexture(target, textureID);
-		//设置纹理的过滤和环绕模式
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//将加载的纹理数据转化为OpenGL格式
-		ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-		//将数据传入纹理对象中
+	// Parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	SOIL_free_image_data(image);
+	return textureID;
 
-		switch (target)
-		{
-		case GL_TEXTURE_1D:
-			glTexImage1D(GL_TEXTURE_1D, 0,ilGetInteger(IL_IMAGE_FORMAT),ilGetInteger(IL_IMAGE_WIDTH),	
-				         0, ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE,ilGetData());	
-			break;
-		case GL_TEXTURE_2D:
-			glTexImage2D(GL_TEXTURE_2D, 				// Type of texture
-				0,				// Pyramid level (for mip-mapping) - 0 is the top level
-				ilGetInteger(IL_IMAGE_FORMAT),	// Internal pixel format to use. Can be a generic type like GL_RGB or GL_RGBA, or a sized type
-				ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-				ilGetInteger(IL_IMAGE_HEIGHT),	// Image height
-				0,				// Border width in pixels (can either be 1 or 0)
-				ilGetInteger(IL_IMAGE_FORMAT),	// Format of image pixel data
-				GL_UNSIGNED_BYTE,		// Image data type
-				ilGetData());			// The actual image data itself
-			break;
-		case GL_TEXTURE_3D:
-			glTexImage3D(GL_TEXTURE_3D, 				// Type of texture
-				0,				// Pyramid level (for mip-mapping) - 0 is the top level
-				ilGetInteger(IL_IMAGE_FORMAT),	// Internal pixel format to use. Can be a generic type like GL_RGB or GL_RGBA, or a sized type
-				ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-				ilGetInteger(IL_IMAGE_HEIGHT),	// Image height
-				ilGetInteger(IL_IMAGE_DEPTH),
-				0,				// Border width in pixels (can either be 1 or 0)
-				ilGetInteger(IL_IMAGE_FORMAT),	// Format of image pixel data
-				GL_UNSIGNED_BYTE,		// Image data type
-				ilGetData());			// The actual image data itself
-			break;
-		/*case GL_TEXTURE_1D_ARRAY:
-			glTexStorage2D(GL_TEXTURE_1D_ARRAY, h.miplevels, h.glinternalformat, h.pixelwidth, h.arrayelements);
-			glTexSubImage2D(GL_TEXTURE_1D_ARRAY, 0, 0, 0, h.pixelwidth, h.arrayelements, h.glformat, h.gltype, data);
-			break;
-		case GL_TEXTURE_2D_ARRAY:
-			glTexStorage3D(GL_TEXTURE_2D_ARRAY, h.miplevels, h.glinternalformat, h.pixelwidth, h.pixelheight, h.arrayelements);
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, h.pixelwidth, h.pixelheight, h.arrayelements, h.glformat, h.gltype, data);
-			break;
-			*/
-			glTexImage3D(GL_TEXTURE_3D, 				// Type of texture
-				0,				// Pyramid level (for mip-mapping) - 0 is the top level
-				ilGetInteger(IL_IMAGE_FORMAT),	// Internal pixel format to use. Can be a generic type like GL_RGB or GL_RGBA, or a sized type
-				ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-				ilGetInteger(IL_IMAGE_HEIGHT),	// Image height
-				ilGetInteger(IL_IMAGE_DEPTH),
-				0,				// Border width in pixels (can either be 1 or 0)
-				ilGetInteger(IL_IMAGE_FORMAT),	// Format of image pixel data
-				GL_UNSIGNED_BYTE,		// Image data type
-				ilGetData());			// The actual image data itself
-		case GL_TEXTURE_CUBE_MAP:
-			glTexStorage2D(GL_TEXTURE_CUBE_MAP, 0, ilGetInteger(IL_IMAGE_FORMAT),
-				           ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
-			// glTexSubImage3D(GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0, h.pixelwidth, h.pixelheight, h.faces, h.glformat, h.gltype, data);
-			{
-				for (unsigned int i = 0; i < 6; i++)
-					glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-					ilGetInteger(IL_IMAGE_WIDTH),	// Image width
-					ilGetInteger(IL_IMAGE_HEIGHT),	// Image height
-					0,
-					0,				// Border width in pixels (can either be 1 or 0)
-					ilGetInteger(IL_IMAGE_FORMAT),	// Format of image pixel data
-					GL_UNSIGNED_BYTE, ilGetData() + 6 * i);
-			}
-			break;
-		//case GL_TEXTURE_CUBE_MAP_ARRAY:
-		//	glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, h.miplevels, h.glinternalformat, h.pixelwidth, h.pixelheight, h.arrayelements);
-		//	glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 0, h.pixelwidth, h.pixelheight, h.faces * h.arrayelements, h.glformat, h.gltype, data);
-		//	break;
-		default:                                               // Should never happen
-			break;
-		}
+}
+GLuint loadTexture(GLchar* path, GLboolean alpha)
+{
+	//Generate texture ID and load texture data 
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	int width,height;
+	unsigned char* image = SOIL_load_image(path, &width, &height, 0, alpha ? SOIL_LOAD_RGBA : SOIL_LOAD_RGB);
+	if (!image)
+		std::cout << "Faile to load the file:" << path << std::endl;
+
+	// Assign texture to ID
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, alpha ? GL_RGBA : GL_RGB, width, height, 0, alpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);	
+
+	// Parameters
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, alpha ? GL_CLAMP_TO_EDGE : GL_REPEAT );	// Use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes value from next repeat 
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, alpha ? GL_CLAMP_TO_EDGE : GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	SOIL_free_image_data(image);
+	return textureID;
+}
+
+GLuint loadCubeMap(const std::vector<std::string> &faces)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	int width, height;
+	unsigned char *image;
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	for (GLuint i = 0; i < faces.size(); ++i) {
+		image = SOIL_load_image(faces[i].c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+		if (!image)
+			std::cout << "Cannot load the cube map texture" << std::endl;
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
+			width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		SOIL_free_image_data(image);
 	}
-	else 
-		std::cout << "Fail to load the texture!" << std::endl;
- 
- 	ilDeleteImages(1, &imageID); // Because we have already copied image data into texture data we can release memory used by image.
-	std::cout << "Texture creation successful." << std::endl;
-	return textureID; // 返回加载纹理索引
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	return textureID;
 }
+#endif

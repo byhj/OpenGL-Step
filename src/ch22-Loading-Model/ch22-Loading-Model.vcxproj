@@ -64,6 +64,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="loadModel.frag" />
+    <None Include="loadModel.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ch22-lodelModel.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

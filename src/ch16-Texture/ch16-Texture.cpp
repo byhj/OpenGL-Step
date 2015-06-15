@@ -247,6 +247,7 @@ int main(int argc, char **argv)
 	glutInitWindowPosition(g_PosX, g_PosY);
 	glutCreateWindow(g_pWindowTitle);
 	init();
+	glutSetCursor(GLUT_CURSOR_NONE); 
 	glutDisplayFunc(render);
 	glutKeyboardFunc(keyboard);
 	glutPassiveMotionFunc(passiveMouse);

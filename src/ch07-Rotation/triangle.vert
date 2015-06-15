@@ -2,9 +2,9 @@
 
 layout (location = 0) in vec4 Position;
 
-uniform mat4 world;
+uniform mat4 model;
 
 void main(void)
 {
-   gl_Position = world * Position;
+   gl_Position = model * Position;
 }

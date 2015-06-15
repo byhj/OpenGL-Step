@@ -1,53 +1,80 @@
+#include <common/stepApp.h>
 #include <common/shader.h>
-#include <common/common.h>
-#include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
 
-#ifdef WIN32
-//If PLATFORM IS WIN32, we put the render window to the middle of window
-const int g_ScreenWidth = GetSystemMetrics(SM_CXSCREEN) * 0.75;
-const int g_ScreenHeight = GetSystemMetrics(SM_CYSCREEN) * 0.75;
-const int g_PosX = (GetSystemMetrics(SM_CXSCREEN) - g_ScreenWidth) / 2;
-const int g_PosY = (GetSystemMetrics(SM_CYSCREEN) - g_ScreenHeight) / 2;
+class TriangleApp: public byhj::Application
+{
+public:
+	TriangleApp() :TriangleShader("Triangle Shader")
+	{
+		windowInfo.title += "ch04-Shader";
+	}
+	~TriangleApp() {}
 
-#else
-const int g_ScreenWidth = 800;
-const int g_ScreenHeight = 600;
-const int g_PosX = 300;
-const int g_PosY = 100;
-#endif
+	void v_Init()
+	{
+		init_buffer();
+		init_vertexArray();
+		init_shader();
 
-//Window Title
-const char *g_pWindowTitle = "ch3-Triangle";
-static Shader TriangleShader("Triangle Shader");
-static GLuint g_vbo = 0, g_program = 0, g_vao = 0;
+		//set the background color 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	void v_Render()
+	{
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		//We use current shader program and vao status to render the scene
+		glUseProgram(program);
+		glBindVertexArray(vao);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+	void v_Shutdown()
+	{		
+		glDeleteProgram(program);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteBuffers(1, &vbo);
+	}
+
+private:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+
+private:
+	Shader TriangleShader;
+	GLuint program;
+	GLuint vbo, vao;
+};
+CALL_MAIN(TriangleApp);
 
 static const GLfloat VertexData[] = 
 {
 	-0.5f, -0.5f, 0.0f, 1.0f,
-	 0.5f, -0.5f, 0.0f, 1.0f,
-	 0.0f,  0.5f, 0.0f, 1.0f,
+	0.5f, -0.5f, 0.0f, 1.0f,
+	0.0f,  0.5f, 0.0f, 1.0f,
 };
 static const GLsizei VertexSize = sizeof(VertexData);
 
-void init_buffer()
+void TriangleApp::init_buffer()
 {
 	//vbo are buffers that can be stored in video memory and provide the shortest access time to the GPU
-	glGenBuffers(1, &g_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, VertexSize, VertexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void init_vertexArray()
+void TriangleApp::init_vertexArray()
 {
 	//vao is manage the opengl status
-	glGenVertexArrays(1, &g_vao);
-	glBindVertexArray(g_vao);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
 	//We bind the buffer, change vao status
-	glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//Hint how opengl send the data
 	glEnableVertexAttribArray(0);
@@ -59,69 +86,15 @@ void init_vertexArray()
 	
 }
 
-void init_shader()
+void TriangleApp::init_shader()
 {
 	TriangleShader.init();
 	TriangleShader.attach(GL_VERTEX_SHADER, "triangle.vert");
 	TriangleShader.attach(GL_FRAGMENT_SHADER, "triangle.frag");
 	TriangleShader.link();
-	g_program = TriangleShader.GetProgram();
+	program = TriangleShader.GetProgram();
 }
 
-void init()
-{
 
-#ifdef _DEBUG
-	videoCardInfo();
-#endif
 
-	GLenum res = glewInit();
-	if (res != GLEW_OK)
-	{
-		std::cerr << "Error:" << glewGetErrorString(res) << std::endl;
-		return;
-	}
 
-	init_buffer();
-	init_vertexArray();
-	init_shader();
-
-	//set the background color 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-void render()
-{
-	//clear the color buffer to backgroud color
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	//We use current shader program and vao status to render the scene
-	glUseProgram(g_program);
-	glBindVertexArray(g_vao);
-
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	//Swap the buffer to show
-	glutSwapBuffers();
-
-}
-
-void shutdown()
-{ 
-	glDeleteProgram(g_program);
-	glDeleteVertexArrays(1, &g_vao);
-	glDeleteBuffers(1, &g_vbo);
-}
-
-int main(int argc, char **argv)
-{
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowSize(g_ScreenWidth, g_ScreenHeight);
-	glutInitWindowPosition(g_PosX, g_PosY);
-	glutCreateWindow(g_pWindowTitle);
-	init();
-	glutDisplayFunc(render);
-	glutMainLoop();
-	shutdown();
-}

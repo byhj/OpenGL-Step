@@ -48,6 +48,7 @@ struct SpotLight
   float outerCutOff;
   PointLight pLight;
 };
+
 ////////////////////Uniform/////////////////////////////////////
 uniform Material mat;
 uniform DirLight dirLight;

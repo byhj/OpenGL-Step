@@ -2,6 +2,7 @@
 #define GLDEBUG_H
 
 #include <GL/glew.h>
+#include <windows.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
