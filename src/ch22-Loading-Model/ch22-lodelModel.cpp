@@ -1,223 +1,279 @@
-#include <GL/glew.h>
-#include <GL/freeglut.h>
-#include <iostream>
+#include <common/stepApp.h>
+#include <common/shader.h>
+#include <common/camera.h>
+#include <common/Texture.h>
+#include <common/light.h>
+#include <common/model.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-using namespace std;
-
-#include <shader.h>
-#include <light.h>
-#include <mesh.h>
-
-#define BUFFER_OFFSET(offset) ((GLvoid*)(NULL + offset))
-
-GLuint vbo, vao, ibo , program;
-GLuint proj_matrix_loc, mv_matrix_loc;
-GLuint gSampler, texture;
-Shader modelShader("diffuse shader");
-
-Mesh mesh;
-glm::vec3 gEyeWorldPos;
-float gMatSpecularIntensity;
-float gSpecularPower;
-Lighting light;
-DirectionalLight dLight;
-PointLight pLight[2];
 static const float FieldDepth = 20.0f;
 static const float FieldWidth = 10.0f;
-float m_scale = 0.0f;
 
-void init_light()
+class TriangleApp: public byhj::Application
 {
-	dLight.Color= glm::vec3(1.0f, 1.0f, 1.0f);
-    dLight.AmbientIntensity = 0.0f;
-    dLight.DiffuseIntensity = 0.01f;
-    dLight.Direction = glm::vec3(1.0f, -1.0, 0.0);
-
-	pLight[0].DiffuseIntensity = 0.5f;
-    pLight[0].Color = glm::vec3(1.0f, 0.5f, 0.0f);
-    pLight[0].Position = glm::vec3(3.0f, 1.0f, FieldDepth * (cosf(m_scale) + 1.0f) / 2.0f);
-    pLight[0].Attenuation.Linear = 0.1f;
-    pLight[1].DiffuseIntensity = 0.5f;
-    pLight[1].Color = glm::vec3(0.0f, 0.5f, 1.0f);
-    pLight[1].Position = glm::vec3(7.0f, 1.0f, FieldDepth * (sinf(m_scale) + 1.0f) / 2.0f);
-    pLight[1].Attenuation.Linear = 0.1f;
-
-	gEyeWorldPos = glm::vec3(5.0f, 1.0f, 3.0f);
-	gMatSpecularIntensity = 0.0f;
-	gSpecularPower = 0;
-}
-
-void load_shader()
-{
-	modelShader.init();
-	modelShader.attach(GL_VERTEX_SHADER, "loadModel.vert");
-	modelShader.attach(GL_FRAGMENT_SHADER, "loadModel.frag");
-	modelShader.link();
-	modelShader.use();
-	program = modelShader.program;
-	mv_matrix_loc = glGetUniformLocation(program, "mv_matrix");
-	proj_matrix_loc = glGetUniformLocation(program, "proj_matrix");
-    gSampler = glGetUniformLocation(program, "gSampler");
-	glUniform1i(gSampler, 0);
-	light.Init(program);
-	light.SetPointLights(2, pLight);
-	light.SetMatSpecularIntensity(gMatSpecularIntensity);
-	light.SetMatSpecularPower(gSpecularPower);
-	light.SetDirectionalLight(dLight);
-
-}
-
-
-void init()
-{
-	load_shader();
-	mesh.loadMesh("../media/object/phoenix_ugv.md2");
-	glFrontFace(GL_CW); //背面剔除
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-}
-
-
-static glm::vec3 target(0.0f, 0.0f, 0.0f); //控制摄像头，使用球体坐标360度旋转
-static glm::vec3 up(0.0f, 1.0f, 0.0f);
-static float camX = 0.0, camY = 0.0, camZ = 5.0;
-int startX, startY, tracking = 0;
-float alpha = 0.0f, beta = 0.0f;
-float r = 5.0f;
-
-void render()
-{
-	static const float black[] = {0.0f, 0.0f, 0.0f ,1.0f};
-	glClearBufferfv(GL_COLOR, 0, black);
-	modelShader.use();
-	glBindVertexArray(vao);
-	glViewport(0, 0, 720, 640);
-	static float scale = 0.0f;
-	scale += 0.01f;  //先平移，缩放，旋转
-
-	glm::mat4 model_matrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -3.0f));               
-	glm::mat4 view_matrix = glm::lookAt(glm::vec3(camX, camY, camZ), target, up);
-	glm::mat4 mv_matrix =  view_matrix * model_matrix ;
-	glUniformMatrix4fv(mv_matrix_loc, 1, GL_FALSE, &mv_matrix[0][0]);
-
-	glm::mat4 proj_matrix = glm::perspective(60.0f, 720.0f / 640.0f, 1.0f, 100.0f);
-	glUniformMatrix4fv(proj_matrix_loc, 1, GL_FALSE, &proj_matrix[0][0]);
-	gEyeWorldPos = glm::vec3(camX, camY, camZ);
-	light.SetEyeWorldPos(gEyeWorldPos);
-	mesh.render();	
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
-
-void processKeys(unsigned char key, int xx, int yy) 
-{
-	switch(key) {
-
-		case 27:
-			glutLeaveMainLoop();
-			break;
-		case 'z': r -= 0.1f; break;
-		case 'x': r += 0.1f; break;	
-		case 'm': glEnable(GL_MULTISAMPLE); break;
-		case 'n': glDisable(GL_MULTISAMPLE); break;
+public:
+	TriangleApp() :TriangleShader("Triangle Shader"), camera(glm::vec3(0.0f, 50.0f, 50.0f))
+	{
+		windowInfo.title += "cg22-Loading-Model";
+		lastX = GetScreenWidth() / 2.0f;
+		lastY = GetScreenHeight() / 2.0f;
+		firstMouse = true;
+		deltaTime = 0.0f;
+		lastTime = 0.0f;
+		for (int i = 0; i != 1024; ++ i)
+			keys[i] = false;
 	}
-	camX = r * sin(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camY = r *   						     sin(beta * 3.14f / 180.0f);
+	~TriangleApp() {}
 
-//  uncomment this if not using an idle func
-//	glutPostRedisplay();
-}
+	void v_Init()
+	{
+		init_buffer();
+		init_vertexArray();
+		init_shader();
+		init_texture();
+		glEnable(GL_DEPTH_TEST);
+		//set the background color 
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearDepth(1.0f);
 
-void processMouseButtons(int button, int state, int xx, int yy)
-{
-	// start tracking the mouse
-	if (state == GLUT_DOWN)  {
-		startX = xx; //获取当前坐标
-		startY = yy;
-		if (button == GLUT_LEFT_BUTTON)
-			tracking = 1;
-		else if (button == GLUT_RIGHT_BUTTON)
-			tracking = 2;
+	}
+	void v_Render()
+	{
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//We use current shader program and vao status to render the scene
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		glBindTexture(GL_TEXTURE_2D, tex);
+
+		GLfloat currentTime = glfwGetTime();
+		deltaTime = (currentTime - lastTime) * 10.0f;
+		lastTime = currentTime;
+
+		static GLfloat time = 0.0f;
+		time += 1.0f;
+
+		//You should add the translate to set last
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 10.0f, -100.0f) )
+			            * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -1.0f));
+		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 1000.0f);
+
+		//Notice the row-major or column-major 
+		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj[0][0] );
+		glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0] );
+		glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
+		glUniform3fv(viewPos_loc, 1, &camera.Position[0]);
+
+		glUniform3fv(dirLight.ambient_loc, 1, &dirLight.ambient[0]);
+		glUniform3fv(dirLight.diffuse_loc, 1, &dirLight.diffuse[0]);
+		glUniform3fv(dirLight.specular_loc, 1, &dirLight.specular[0]);
+		glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
+		glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
+		glUniform3fv(mat.specular_loc, 1, &mat.specular[0]);
+		glUniform1f( mat.shininess_loc, mat.shininess);
+		glUniform1i(tex_loc, 0);
+
+		// Positions of the point lights
+		glm::vec3 pointLightPositions[2] = 
+		{
+			glm::vec3(5.0f, 1.0f,  FieldDepth * cosf(currentTime) * 10),
+			glm::vec3(3.0f, 1.0f, FieldDepth * sinf(currentTime) * 10),
+		};
+
+		glm::vec3 pointLightColors[2] = 
+		{
+			glm::vec3(0.0f, 0.0f, 1.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f),
+		};
+
+		// Point light 1
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].ambient"), pointLightColors[0].x ,  pointLightColors[0].y ,  pointLightColors[0].z );		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
+
+		// Point light 2				
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].ambient"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
+
+		// SpotLight
+		glUniform3f(glGetUniformLocation(program, "spotLight.position"), 3.0f, 1.0f, 10.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.direction"), 1.0f, -1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.ambient"), 1.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.diffuse"), 1.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.specular"), 1.0f, 0.0f, 0.0f);
+		glUniform1f(glGetUniformLocation(program, "spotLight.constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "spotLight.linear"), 0.9);
+		glUniform1f(glGetUniformLocation(program, "spotLight.quadratic"), 0.32);
+		glUniform1f(glGetUniformLocation(program, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(program, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
+
+		objModel.Draw(program);
+
 	}
 
-	//stop tracking the mouse
-	else if (state == GLUT_UP) {
-		if (tracking == 1) {
-			alpha += (startX - xx);
-			beta += (yy - startY);
-		}
-		else if (tracking == 2) {
-			r += (yy - startY) * 0.01f;
-		}
-		tracking = 0;
+	void v_Shutdown()
+	{		
+		glDeleteProgram(program);
+		glDeleteVertexArrays(1, &vao);
+		glDeleteBuffers(1, &vbo);
 	}
-}
+	void v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
+	void v_Movement(GLFWwindow *window);
+	void v_MouseCallback(GLFWwindow* window, double xpos, double ypos);
+	void v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+private:
+	void init_buffer();
+	void init_vertexArray();
+	void init_shader();
+	void init_texture();
+private:
+	// Camera
+	Camera camera;
+	bool keys[1024];
+	GLfloat lastX, lastY ;
+	bool firstMouse;
+	GLfloat deltaTime;
+	GLfloat lastTime;
+
+	Shader TriangleShader;
+	GLuint program;
+	GLuint vbo, vao, ibo;
+	GLuint mvp_loc, tex_loc, model_loc;
+	GLuint proj_loc, view_loc, viewPos_loc;
+	GLuint tex;
+
+	enum PointLight
+	{
+		Size = 4
+	};
+	byhj::DirLight dirLight;
+	byhj::PointLight pLight[PointLight::Size];
+	byhj::Material mat;
+	Model objModel;
+
+};
+CALL_MAIN(TriangleApp);
 
 
-void processMouseMotion(int xx, int yy)
+void TriangleApp::init_buffer()
 {
-	int deltaX, deltaY;
-	float alphaAux, betaAux;
-	float rAux;
-
-	deltaX = startX - xx;
-	deltaY = yy - startY;
-
-	// left mouse button: move diffuse
-	if (tracking == 1) {
-		alphaAux = alpha + deltaX;
-		betaAux = beta + deltaY;
-		if (betaAux > 85.0f)
-			betaAux = 85.0f;
-		else if (betaAux < -85.0f)
-			betaAux = -85.0f;
-		rAux = r;
-
-		camX = rAux * cos(betaAux * 3.14f / 180.0f) * sin(alphaAux * 3.14f / 180.0f);
-		camZ = rAux * cos(betaAux * 3.14f / 180.0f) * cos(alphaAux * 3.14f / 180.0f);
-		camY = rAux * sin(betaAux * 3.14f / 180.0f);
-	}
-	// right mouse button: zoom
-	else if (tracking == 2) {
-
-		alphaAux = alpha;
-		betaAux = beta;
-		rAux = r + (deltaY * 0.01f);
-
-		camX = rAux * cos(betaAux * 3.14f / 180.0f) * sin(alphaAux * 3.14f / 180.0f);
-		camZ = rAux * cos(betaAux * 3.14f / 180.0f) * cos(alphaAux * 3.14f / 180.0f);
-		camY = rAux * sin(betaAux * 3.14f / 180.0f);
-	}
+	objModel.loadModel("../../media/phoenix_ugv.md2");
+	dirLight.ambient  = glm::vec3(1.0f);
+	dirLight.diffuse  = glm::vec3(0.5f);
+	dirLight.specular = glm::vec3(1.0f);
+	mat.ambient    = glm::vec3(0.5f);
+	mat.diffuse    = glm::vec3(0.5f);
+	mat.specular   = glm::vec3(1.0f);
+	mat.shininess  = 32.0f;  
 }
 
-void mouseWheel(int wheel, int direction, int x, int y) {
 
-	r += direction * 0.1f;
-	camX = r * sin(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camZ = r * cos(alpha * 3.14f / 180.0f) * cos(beta * 3.14f / 180.0f);
-	camY = r * sin(beta * 3.14f / 180.0f);
-}
 
-int main(int argc, char **argv)
+void TriangleApp::init_vertexArray()
 {
-	
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE); //显示模式，重要
-	glutInitWindowPosition(150, 0);
-	glutInitWindowSize(720, 640);
-	glutCreateWindow("Tutorial 22 - Load Model");
-	GLenum res = glewInit();
-	if (res != GLEW_OK)
-		cout << "Fail to initial the glew:" << glewGetString(res) << endl;
-	init();
-	glutDisplayFunc(render);
-	glutKeyboardFunc(processKeys);
-	glutMouseFunc(processMouseButtons);
-	glutMotionFunc(processMouseMotion);
-	glutMouseWheelFunc (mouseWheel) ;
-	glutMainLoop(); //循环调用注册函数displa
-	return 0;
 }
+
+void TriangleApp::init_shader()
+{
+	TriangleShader.init();
+	TriangleShader.attach(GL_VERTEX_SHADER, "model.vert");
+	TriangleShader.attach(GL_FRAGMENT_SHADER, "model.frag");
+	TriangleShader.link();
+	program = TriangleShader.GetProgram();
+
+	proj_loc           = glGetUniformLocation(program, "proj");  
+	view_loc           = glGetUniformLocation(program, "view");  
+	model_loc          = glGetUniformLocation(program, "model");
+	tex_loc            = glGetUniformLocation(program, "tex");
+	viewPos_loc        = glGetUniformLocation(program, "viewPos");
+
+	dirLight.ambient_loc  = glGetUniformLocation(program, "dirLight.ambient");
+	dirLight.diffuse_loc  = glGetUniformLocation(program, "dirLight.diffuse");
+	dirLight.specular_loc = glGetUniformLocation(program, "dirLight.specular");
+	dirLight.specular_loc = glGetUniformLocation(program, "dirLight.direction");
+
+	mat.ambient_loc    = glGetUniformLocation(program, "mat.ambient");
+	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
+	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
+	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
+}
+
+
+void TriangleApp::init_texture()
+{
+}
+
+
+// Moves/alters the camera positions based on user input
+void TriangleApp::v_Movement(GLFWwindow *window)
+{
+	// Camera controls
+	if(keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if(keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if(keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if(keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if(keys[GLFW_KEY_L])
+		mat.ambient += glm::vec3(0.01f);
+	if(keys[GLFW_KEY_I])
+		mat.ambient -= glm::vec3(0.01f);
+	if (keys[GLFW_KEY_C])
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		camera.ctr = false;
+	}
+}
+
+// Is called whenever a key is pressed/released via GLFW
+void TriangleApp::v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	//cout << key << std::endl;
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if(action == GLFW_PRESS)
+		keys[key] = true;
+	else if(action == GLFW_RELEASE)
+		keys[key] = false;	
+}
+
+void TriangleApp::v_MouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	if(firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+
+	lastX = xpos;
+	lastY = ypos;
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}	
+
+
+void TriangleApp::v_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
+}
+

@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="loadModel.frag">
+    <None Include="model.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="loadModel.vert">
+    <None Include="model.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+
 using namespace std;
 // GL Includes
 #include <GL/glew.h> // Contains all the necessery OpenGL includes

@@ -25,12 +25,14 @@ $RECYCLE.BIN/
 *.idb
 *.log
 *.ilk
+*.tga
 *.lastbuildstate
 *.ktx
-*.sbm
 *.jpg
 *.png
 *.trace
+*.bmp
+
 
 # =========================
 # Operating System Files
