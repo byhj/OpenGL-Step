@@ -33,6 +33,8 @@ public:
 		init_vertexArray();
 		init_shader();
 		init_texture();
+		init_fbo();
+
 		glEnable(GL_DEPTH_TEST);
 		//set the background color 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -44,6 +46,8 @@ public:
 		//clear the color buffer to backgroud color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		//Draw the scene depth data to texture
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		//We use current shader program and vao status to render the scene
 		glUseProgram(program);
 		glBindVertexArray(vao);
@@ -52,9 +56,6 @@ public:
 		GLfloat currentTime = glfwGetTime();
 		deltaTime = (currentTime - lastTime) * 10.0f;
 		lastTime = currentTime;
-
-		static GLfloat time = 0.0f;
-		time += 1.0f;
 
 		//You should add the translate to set last
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 30.0f, -100.0f) )
@@ -122,6 +123,94 @@ public:
 
 		objModel.Draw(program);
 
+/*
+		//Draw the shadow texture
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearDepth(1.0f);
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBindTexture(GL_TEXTURE_2D, tex_shadow);
+		glUseProgram(shadow_prog);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glUseProgram(0);
+**/
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearDepth(1.0f);
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glBindTexture(GL_TEXTURE_2D, tex_shadow);
+		currentTime = glfwGetTime();
+		deltaTime = (currentTime - lastTime) * 10.0f;
+		lastTime = currentTime;
+
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		GLfloat near_plane = 1.0f, far_plane = 7.5f;
+		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		//lightProjection = glm::perspective(45.0f, (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // Note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene.
+		lightView = glm::lookAt(glm::vec3(10.0f, 40.0f, -100.0f), glm::vec3(0.0f), glm::vec3(1.0));
+		lightSpaceMatrix = lightProjection * lightView;
+		glUniformMatrix4fv(glGetUniformLocation(program, "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceMatrix[0][0]);
+
+		//You should add the translate to set last
+		model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 30.0f, -100.0f) )
+			* glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		view = camera.GetViewMatrix();
+		proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 1000.0f);
+
+		//Notice the row-major or column-major 
+		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj[0][0] );
+		glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0] );
+		glUniformMatrix4fv(model_loc, 1, GL_FALSE, &model[0][0]);
+		glUniform3fv(viewPos_loc, 1, &camera.Position[0]);
+
+		glUniform3fv(dirLight.ambient_loc, 1, &dirLight.ambient[0]);
+		glUniform3fv(dirLight.diffuse_loc, 1, &dirLight.diffuse[0]);
+		glUniform3fv(dirLight.specular_loc, 1, &dirLight.specular[0]);
+		glUniform3fv(mat.ambient_loc, 1, &mat.ambient[0]);
+		glUniform3fv(mat.diffuse_loc, 1, &mat.diffuse[0]);
+		glUniform3fv(mat.specular_loc, 1, &mat.specular[0]);
+		glUniform1f( mat.shininess_loc, mat.shininess);
+		glUniform1i(tex_loc, 0);
+
+		// Point light 1
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].ambient"), pointLightColors[0].x ,  pointLightColors[0].y ,  pointLightColors[0].z );		
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[0].specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
+
+		// Point light 2				
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].ambient"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);		
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
+		glUniform3f(glGetUniformLocation(program, "pointLights[1].specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
+
+		// SpotLight
+		glUniform3f(glGetUniformLocation(program, "spotLight.position"), 3.0f, 1.0f, 10.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.direction"), 1.0f, -1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.ambient"), 1.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.diffuse"), 1.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(program, "spotLight.specular"), 1.0f, 0.0f, 0.0f);
+		glUniform1f(glGetUniformLocation(program, "spotLight.constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(program, "spotLight.linear"), 0.9);
+		glUniform1f(glGetUniformLocation(program, "spotLight.quadratic"), 0.32);
+		glUniform1f(glGetUniformLocation(program, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(program, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
+
+		objModel.Draw(program);
+
 	}
 
 	void v_Shutdown()
@@ -140,6 +229,8 @@ private:
 	void init_vertexArray();
 	void init_shader();
 	void init_texture();
+	void init_fbo();
+
 private:
 	// Camera
 	Camera camera;
@@ -164,7 +255,10 @@ private:
 	byhj::PointLight pLight[PointLight::Size];
 	byhj::Material mat;
 	Model objModel;
-
+	Shader ShowShader;
+	GLuint tex_shadow, tex_shadow_loc;
+	GLuint fbo;
+	GLuint shadow_prog;
 };
 CALL_MAIN(TriangleApp);
 
@@ -182,7 +276,29 @@ void TriangleApp::init_buffer()
 }
 
 
+void TriangleApp::init_fbo()
+{
+	glGenFramebuffers(1, &fbo);
+	glGenTextures(1, &tex_shadow);
+	glBindTexture(GL_TEXTURE_2D, tex_shadow);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GetScreenWidth(), GetScreenHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow, 0);
+	// Disable writes to the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (Status != GL_FRAMEBUFFER_COMPLETE) {
+		printf("FB error, status: 0x%x\n", Status);
+		return;
+	}
+}
 void TriangleApp::init_vertexArray()
 {
 }
@@ -210,6 +326,13 @@ void TriangleApp::init_shader()
 	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
 	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
 	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
+
+	ShowShader.init();
+	ShowShader.attach(GL_VERTEX_SHADER, "show.vert");
+	ShowShader.attach(GL_FRAGMENT_SHADER, "show.frag");
+	ShowShader.link();
+	shadow_prog = ShowShader.GetProgram();
+
 }
 
 

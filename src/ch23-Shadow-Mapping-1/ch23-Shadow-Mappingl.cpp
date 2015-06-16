@@ -33,6 +33,8 @@ public:
 		init_vertexArray();
 		init_shader();
 		init_texture();
+		init_fbo();
+
 		glEnable(GL_DEPTH_TEST);
 		//set the background color 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -44,6 +46,8 @@ public:
 		//clear the color buffer to backgroud color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		//Draw the scene depth data to texture
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		//We use current shader program and vao status to render the scene
 		glUseProgram(program);
 		glBindVertexArray(vao);
@@ -122,6 +126,17 @@ public:
 
 		objModel.Draw(program);
 
+
+		//Draw the shadow texture
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearDepth(1.0f);
+		//clear the color buffer to backgroud color
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBindTexture(GL_TEXTURE_2D, tex_shadow);
+		glUseProgram(shadow_prog);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glUseProgram(0);
 	}
 
 	void v_Shutdown()
@@ -140,6 +155,8 @@ private:
 	void init_vertexArray();
 	void init_shader();
 	void init_texture();
+	void init_fbo();
+
 private:
 	// Camera
 	Camera camera;
@@ -164,7 +181,10 @@ private:
 	byhj::PointLight pLight[PointLight::Size];
 	byhj::Material mat;
 	Model objModel;
-
+	Shader ShowShader;
+	GLuint tex_shadow, tex_shadow_loc;
+	GLuint fbo;
+	GLuint shadow_prog;
 };
 CALL_MAIN(TriangleApp);
 
@@ -182,7 +202,29 @@ void TriangleApp::init_buffer()
 }
 
 
+void TriangleApp::init_fbo()
+{
+	glGenFramebuffers(1, &fbo);
+	glGenTextures(1, &tex_shadow);
+	glBindTexture(GL_TEXTURE_2D, tex_shadow);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GetScreenWidth(), GetScreenHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex_shadow, 0);
+	// Disable writes to the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (Status != GL_FRAMEBUFFER_COMPLETE) {
+		printf("FB error, status: 0x%x\n", Status);
+		return;
+	}
+}
 void TriangleApp::init_vertexArray()
 {
 }
@@ -210,6 +252,13 @@ void TriangleApp::init_shader()
 	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
 	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
 	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
+
+	ShowShader.init();
+	ShowShader.attach(GL_VERTEX_SHADER, "show.vert");
+	ShowShader.attach(GL_FRAGMENT_SHADER, "show.frag");
+	ShowShader.link();
+	shadow_prog = ShowShader.GetProgram();
+
 }
 
 

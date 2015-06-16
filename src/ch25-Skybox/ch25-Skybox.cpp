@@ -1,7 +1,7 @@
 #include <common/stepApp.h>
 #include <common/shader.h>
 #include <common/camera.h>
-#include <common/Texture.h>
+#include <common/loadTexture.h>
 #include <common/light.h>
 #include <common/model.h>
 
@@ -34,6 +34,7 @@ public:
 		init_shader();
 		init_texture();
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 		//set the background color 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClearDepth(1.0f);
@@ -43,6 +44,32 @@ public:
 	{
 		//clear the color buffer to backgroud color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		GLint OldCullFaceMode;
+		glGetIntegerv(GL_CULL_FACE_MODE, &OldCullFaceMode);
+		GLint OldDepthFuncMode;
+		glGetIntegerv(GL_DEPTH_FUNC, &OldDepthFuncMode);
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+
+		glUseProgram(skybox_program);
+		glBindVertexArray(skybox_vao);
+		// Draw skybox first, disable depth writing. 
+		// This way the skybox will always be drawn at the background of all the other objects.
+
+		// Remove any translation component of the view matrix
+		glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+		glm::mat4 proj = glm::perspective(camera.Zoom, GetAspect(), 0.1f, 1000.0f);
+		glm::mat4 mvp =  proj * view;
+		glUniformMatrix4fv(glGetUniformLocation(skybox_program, "mvp_matrix"), 1, GL_FALSE, &mvp[0][0]);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_texture);
+		SphereModel.Draw(skybox_program);
+		glBindVertexArray(0);
+
+		glCullFace(OldCullFaceMode);        
+		glDepthFunc(OldDepthFuncMode);
+
 
 		//We use current shader program and vao status to render the scene
 		glUseProgram(program);
@@ -58,9 +85,9 @@ public:
 
 		//You should add the translate to set last
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 30.0f, -100.0f) )
-		                * glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 1000.0f);
+		       * glm::rotate(glm::mat4(1.0f), 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		 view = camera.GetViewMatrix();
+		 proj = glm::perspective(glm::radians(camera.Zoom), GetAspect(), 1.0f, 1000.0f);
 
 		//Notice the row-major or column-major 
 		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, &proj[0][0] );
@@ -156,6 +183,11 @@ private:
 	GLuint proj_loc, view_loc, viewPos_loc;
 	GLuint tex;
 
+	Shader skyboxShader;
+	GLuint skybox_vbo, skybox_vao, skybox_program;
+	GLuint skybox_mvp_loc, skybox_tex_loc;
+	GLuint cubemap_texture;
+
 	enum PointLight
 	{
 		Size = 4
@@ -164,7 +196,7 @@ private:
 	byhj::PointLight pLight[PointLight::Size];
 	byhj::Material mat;
 	Model objModel;
-
+	Model SphereModel;
 };
 CALL_MAIN(TriangleApp);
 
@@ -172,6 +204,7 @@ CALL_MAIN(TriangleApp);
 void TriangleApp::init_buffer()
 {
 	objModel.loadModel("../../media/phoenix_ugv.md2");
+	SphereModel.loadModel("../../media/sphere.obj");
 	dirLight.ambient  = glm::vec3(1.0f);
 	dirLight.diffuse  = glm::vec3(0.5f);
 	dirLight.specular = glm::vec3(1.0f);
@@ -179,13 +212,10 @@ void TriangleApp::init_buffer()
 	mat.diffuse    = glm::vec3(0.5f);
 	mat.specular   = glm::vec3(1.0f);
 	mat.shininess  = 32.0f;  
+
+
 }
 
-
-
-void TriangleApp::init_vertexArray()
-{
-}
 
 void TriangleApp::init_shader()
 {
@@ -210,11 +240,32 @@ void TriangleApp::init_shader()
 	mat.diffuse_loc    = glGetUniformLocation(program, "mat.diffuse");
 	mat.specular_loc   = glGetUniformLocation(program, "mat.specular");
 	mat.shininess_loc  = glGetUniformLocation(program, "mat.shininess");
+
+
+	skyboxShader.init();
+	skyboxShader.attach(GL_VERTEX_SHADER, "skybox.vert");
+	skyboxShader.attach(GL_FRAGMENT_SHADER, "skybox.frag");
+	skyboxShader.link();
+	skybox_program = skyboxShader.GetProgram();
+	skybox_tex_loc = glGetUniformLocation(skybox_program, "skybox");
+	skybox_mvp_loc = glGetUniformLocation(skybox_program, "mvp_matrix");
 }
 
+void TriangleApp::init_vertexArray()
+{
+}
 
 void TriangleApp::init_texture()
 {
+	// Cubemap (Skybox)
+	std::vector<std::string> faces;
+	faces.push_back("../../media/skybox/right.jpg");
+	faces.push_back("../../media/skybox/left.jpg");
+	faces.push_back("../../media/skybox/top.jpg");
+	faces.push_back("../../media/skybox/bottom.jpg");
+	faces.push_back("../../media/skybox/back.jpg");
+	faces.push_back("../../media/skybox/front.jpg");
+	cubemap_texture = loadCubeMap(faces);
 }
 
 

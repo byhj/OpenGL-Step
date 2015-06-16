@@ -63,6 +63,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="model.frag" />
+    <None Include="model.vert" />
+    <None Include="show.frag" />
+    <None Include="show.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ch23-Shadow-Mappingl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
