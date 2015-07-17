@@ -1,24 +1,11 @@
-#include <common/stepApp.h>
+#include "RenderSystem.h"
+#include <memory>
 
-class WindowApp: public byhj::Application
-{
-public:
-	WindowApp() 
-	{
-		windowInfo.title += "ch01-Window";
-	}
-	~WindowApp() {}
+int main(int argc, const char **argv)         
+{       
+	std::shared_ptr<byhj::RenderSystem> app = std::make_shared<byhj::RenderSystem>();                               
+	app->Run(app);  
 
-	void v_Init()
-	{
-		//set the background color 
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	}
-	void v_Render()
-	{
-		//clear the color buffer to backgroud color
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-};
-
-CALL_MAIN(WindowApp);
+	delete app;  
+	return 0;                                     
+}
