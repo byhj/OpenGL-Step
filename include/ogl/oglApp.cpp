@@ -1,8 +1,8 @@
 #include "oglApp.h"
 
-byhj::Application * byhj::Application::app; 
+std::shared_ptr<byhj::Application> byhj::Application::app;
 
-void byhj::Application::Run(byhj::Application *the_app)
+void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 {	
    app = the_app;
 	std::cout << "Starting GLFW context" << std::endl;

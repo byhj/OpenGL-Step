@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 #include <windows.h>
+#include <memory>
 
 #ifdef WIN32
 const int ScreenWidth = static_cast<int>( GetSystemMetrics(SM_CXSCREEN) * 0.75 );
@@ -30,7 +31,7 @@ namespace byhj {
 		virtual ~Application() {}
 
 	public:
-		void Run(byhj::Application *the_app);
+		void Run(std::shared_ptr<byhj::Application> the_app);
 
 		//Override
 		virtual void v_InitInfo() = 0;
@@ -70,7 +71,7 @@ namespace byhj {
 		int GetScreenHeight();
 
 	protected:
-	    static byhj::Application *app;
+	    static  std::shared_ptr<byhj::Application> app;
 
 	    static void glfw_key(GLFWwindow * window, int key, int scancode, int action, int mode) 
 	    {
