@@ -6,11 +6,10 @@
 
 #include <iostream>
 #include <string>
-#include <functional>
 #include <windows.h>
 #include <memory>
 
-#ifdef WIN32
+#ifdef _WIN32
 const int ScreenWidth = static_cast<int>( GetSystemMetrics(SM_CXSCREEN) * 0.75 );
 const int ScreenHeight = static_cast<int>(  GetSystemMetrics(SM_CYSCREEN) * 0.75 );
 const int PosX = (GetSystemMetrics(SM_CXSCREEN) - ScreenWidth)  / 2;

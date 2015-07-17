@@ -4,7 +4,8 @@ std::shared_ptr<byhj::Application> byhj::Application::app;
 
 void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 {	
-   app = the_app;
+    app = the_app;
+
 	std::cout << "Starting GLFW context" << std::endl;
 	if (!glfwInit()) 
 	{
@@ -14,10 +15,12 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 
 	v_InitInfo();
 
-	GLFWwindow *window = glfwCreateWindow(windowInfo.Width, windowInfo.Height, windowInfo.title.c_str(), nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(windowInfo.Width, windowInfo.Height,
+		                                  windowInfo.title.c_str(), nullptr, nullptr);
 	glfwSetWindowPos(window, windowInfo.posX, windowInfo.posY);
 	glfwMakeContextCurrent(window);
 
+	//Key and Mouse callback function
 	glfwSetKeyCallback(window, glfw_key);
 	glfwSetCursorPosCallback(window, glfw_mouse);
 	glfwSetScrollCallback(window, glfw_scroll);
@@ -33,7 +36,7 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 	}	
 	glewExperimental = GL_TRUE;
 
-	//1、查看GLSL和OpenGL的版本  
+	//Check the GLSL and OpenGL status 
 	if (glewInit() != GLEW_OK)
 	{
 		std::cerr << "Failed to initialize GLEW" << std::endl;
@@ -54,10 +57,10 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 	std::cout << "--------------------------------------------------------------------------------" << std::endl;
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major); //opengl 4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //using opengl core file
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-	// Create a GLFWwindow object that we can use for GLFW's functions
 
+	// Create a GLFWwindow object that we can use for GLFW's functions
 	v_Init();
 
 	glViewport(0, 0, windowInfo.Width, windowInfo.Height);
@@ -67,11 +70,13 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 		glfwPollEvents();
 		v_Movement(window);
 
+		//Render for the object
 		v_Render();
 
 		glfwSwapBuffers(window);
 	}
 	v_Shutdown();
+
 	glfwTerminate();
 }
 
