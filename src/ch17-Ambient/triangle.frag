@@ -15,11 +15,12 @@ struct Light
    vec3 ambient;
 };
 
-uniform Material mat;
-uniform Light light;
+uniform Material g_Mat;
+uniform Light g_Light;
 
 void main(void)
 {
-   vec3 ambient = light.ambient * mat.ambient;
+   vec3 ambient = g_Light.ambient * g_Mat.ambient;
+
    fragColor =  vec4(ambient, 1.0f) * texture(tex, tc);
 }

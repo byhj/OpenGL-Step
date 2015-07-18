@@ -63,7 +63,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\include\ogl\camera.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglApp.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglShader.cpp" />
     <ClCompile Include="ch15-Camera-Control-2.cpp" />
+    <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="triangle.frag" />
@@ -71,6 +76,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\common\camera.h" />
+    <ClInclude Include="..\..\include\ogl\oglApp.h" />
+    <ClInclude Include="..\..\include\ogl\oglShader.h" />
+    <ClInclude Include="..\..\include\ogl\oglUtility.h" />
+    <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="triangle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
