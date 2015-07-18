@@ -6,7 +6,7 @@ namespace byhj
 
 void RenderSystem::v_InitInfo()
 {
-	windowInfo.title += "ch04-Shader";
+	windowInfo.title += "ch07-Rotation";
 }
 
 void RenderSystem::v_Init()

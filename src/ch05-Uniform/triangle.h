@@ -25,10 +25,17 @@ private:
 	void init_vertexArray();
 	void init_shader();
 
+	struct Uniform
+	{
+       GLuint scale_loc;
+	}uniform;
+
 	GLuint vao, vbo;
 	OGLShader TriangleShader;
 	GLuint program;
 };
+
+
 
 }
 

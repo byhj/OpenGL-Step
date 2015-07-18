@@ -10,7 +10,7 @@ namespace byhj
 class Triangle
 {
 public:
-	Triangle():vao(-1), vbo(-1), program(-1) ,TriangleShader("Triangle Shader"){}
+	Triangle():vao(-1), vbo(-1), program(-1), model_loc(-1) , TriangleShader("Triangle Shader"){}
 
 	~Triangle() {}
 
@@ -25,10 +25,13 @@ private:
 	void init_vertexArray();
 	void init_shader();
 
+    GLuint model_loc;
 	GLuint vao, vbo;
 	OGLShader TriangleShader;
 	GLuint program;
 };
+
+
 
 }
 
