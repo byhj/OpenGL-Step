@@ -54,7 +54,8 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 	std::cout << "GL Version (std::string)  : " << version << std::endl;  
 	std::cout << "GL Version (integer) : " << major << "." << minor << std::endl;  
 	std::cout << "GLSL Version : " << glslVersion << std::endl;    
-	std::cout << "--------------------------------------------------------------------------------" << std::endl;
+	std::cout << "--------------------------------------------------------------------------------" 
+		      << std::endl;
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major); //opengl 4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 

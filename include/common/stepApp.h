@@ -2,7 +2,6 @@
 #define LEARNAPP_H
 
 #include <GL/glew.h>
-#include <common/glDebug.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -11,8 +10,8 @@
 #include <windows.h>
 
 #ifdef WIN32
-const int ScreenWidth = GetSystemMetrics(SM_CXSCREEN) * 0.75;
-const int ScreenHeight = GetSystemMetrics(SM_CYSCREEN) * 0.75;
+const int ScreenWidth = static_cast<int>(  GetSystemMetrics(SM_CXSCREEN) * 0.75f);
+const int ScreenHeight = static_cast<int>( GetSystemMetrics(SM_CYSCREEN) * 0.75f);
 const int PosX = (GetSystemMetrics(SM_CXSCREEN) - ScreenWidth)  / 2;
 const int PosY = (GetSystemMetrics(SM_CYSCREEN) - ScreenHeight) / 2;
 #else
