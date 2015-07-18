@@ -26,24 +26,24 @@ struct Light
    vec3 specular;
 };
 
-uniform Material mat;
-uniform Light light;
-uniform vec3 lightPos = vec3(0.5f, 0.5f, 1.0f);
+uniform Material g_Mat;
+uniform Light g_Light;
+uniform vec3 lightPos = vec3(0.0f, 0.0f, 1.0f);
 uniform vec3 viewPos = vec3(0.0f, 0.0f, 3.0f);
 
 void main(void)
 {
 
-//Notice, you should normalize the light about vector
+//Notice, you should normalize the g_Light about vector
    vec3 normal     = normalize(fs_in.normal);
    vec3 lightDir   = normalize(lightPos - fs_in.FragPos);
    vec3 viewDir    = normalize(viewPos - fs_in.FragPos);
    vec3 reflectDir = reflect(-lightDir, normal);
 
-//The phong light model = ambient + diffuse + specular
-   vec3 ambient  = light.ambient * mat.ambient;
-   vec3 diffuse  = light.diffuse * mat.diffuse * max(0.0f, dot(lightDir, normal) ); 
-   vec3 specular = light.specular * mat.specular * pow( max( dot(reflectDir, viewDir), 0.0f ), mat.shininess);
+//The phong g_Light model = ambient + diffuse + specular
+   vec3 ambient  = g_Light.ambient * g_Mat.ambient;
+   vec3 diffuse  = g_Light.diffuse * g_Mat.diffuse * max(0.0f, dot(lightDir, normal) ); 
+   vec3 specular = g_Light.specular * g_Mat.specular * pow( max( dot(reflectDir, viewDir), 0.0f ), g_Mat.shininess);
    vec3 result   = ambient + diffuse + specular;
 
    fragColor =  vec4(result, 1.0f) * texture(tex, fs_in.tc);
