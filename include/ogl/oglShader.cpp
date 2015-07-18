@@ -153,6 +153,7 @@ void OGLShader::info()
 		//std::cout << "Index " << i << std::endl;
 		std::cout  <<  "(" <<  type_name  << ")" << " locatoin: " << params[1] << std::endl;
 	}
+	std::cout << "--------------------------------------------------------------------------------" << std::endl;
 }
 
 void OGLShader::use() const

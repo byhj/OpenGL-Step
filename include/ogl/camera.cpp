@@ -104,23 +104,23 @@ namespace byhj
 	{
 		if(firstMouse)
 		{
-			lastX = xpos;
-			lastY = ypos;
+			lastX = static_cast<GLfloat>(xpos);
+			lastY = static_cast<GLfloat>(ypos);
 			firstMouse = false;
 		}
 
-		GLfloat xoffset = xpos - lastX;
-		GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+		GLfloat xoffset = static_cast<GLfloat>(xpos) - lastX;
+		GLfloat yoffset = lastY - static_cast<GLfloat>(ypos);  // Reversed since y-coordinates go from bottom to left
 
-		lastX = xpos;
-		lastY = ypos;
+		lastX = static_cast<GLfloat>(xpos);
+		lastY = static_cast<GLfloat>(ypos);
 		ProcessMouseMovement(xoffset, yoffset);
 	}	
 
 
 	void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		ProcessMouseScroll(yoffset);
+		ProcessMouseScroll( static_cast<GLfloat>(yoffset) );
 	}
 
 	// Returns the view matrix calculated using Eular Angles and the LookAt Matrix

@@ -1,20 +1,11 @@
-#ifndef LIGHT_H
-#define LIGHT_H
+#ifndef OGLLIGHT_H
+#define OGLLIGHT_H
 
 #include <glm/glm.hpp>
+#include <gl/glew.h>
 
 namespace byhj
 {
-    struct Light
-	{
-		glm::vec3 ambient;
-		glm::vec3 diffuse;
-		glm::vec3 specular;
-		GLuint ambient_loc;
-		GLuint diffuse_loc;
-		GLuint specular_loc;
-	};
-
 	struct DirLight
 	{
 		glm::vec3 ambient;
@@ -24,6 +15,7 @@ namespace byhj
 		GLuint diffuse_loc;
 		GLuint specular_loc;
 	};
+
 	struct PointLight
 	{
         DirLight dLight;
@@ -38,11 +30,13 @@ namespace byhj
 		GLuint linear_loc;
 		GLuint quadratic_loc;
 	};
+
 	struct Material
 	{
 		glm::vec3 ambient;
 		glm::vec3 diffuse;
 		glm::vec3 specular;
+
 		GLfloat shininess;
 		GLuint ambient_loc;
 		GLuint diffuse_loc;
@@ -51,4 +45,5 @@ namespace byhj
 	};
     
 }
+
 #endif

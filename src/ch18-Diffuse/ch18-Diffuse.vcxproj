@@ -67,7 +67,25 @@
     <None Include="triangle.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\include\ogl\camera.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglApp.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglShader.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglUtility.cpp" />
+    <ClCompile Include="..\..\include\ogl\Texture.cpp" />
     <ClCompile Include="ch18-Diffuse.cpp" />
+    <ClCompile Include="light.cpp" />
+    <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="triangle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\common\camera.h" />
+    <ClInclude Include="..\..\include\ogl\oglApp.h" />
+    <ClInclude Include="..\..\include\ogl\oglShader.h" />
+    <ClInclude Include="..\..\include\ogl\oglUtility.h" />
+    <ClInclude Include="..\..\include\ogl\Texture.h" />
+    <ClInclude Include="light.h" />
+    <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="triangle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
