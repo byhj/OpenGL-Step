@@ -69,8 +69,8 @@ void Light::SetUniform(const GLuint &program, GLfloat deltaTime)
 	glUniform3f(glGetUniformLocation(program, "pointLights[0].diffuse"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z); 
 	glUniform3f(glGetUniformLocation(program, "pointLights[0].specular"), pointLightColors[0].x,  pointLightColors[0].y,  pointLightColors[0].z);
 	glUniform1f(glGetUniformLocation(program, "pointLights[0].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09);
-	glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032);		
+	glUniform1f(glGetUniformLocation(program, "pointLights[0].linear"), 0.09f);
+	glUniform1f(glGetUniformLocation(program, "pointLights[0].quadratic"), 0.032f);		
 
 	// Point light 2				
 	glUniform3f(glGetUniformLocation(program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);		
@@ -78,8 +78,8 @@ void Light::SetUniform(const GLuint &program, GLfloat deltaTime)
 	glUniform3f(glGetUniformLocation(program, "pointLights[1].diffuse"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z); 
 	glUniform3f(glGetUniformLocation(program, "pointLights[1].specular"), pointLightColors[1].x,  pointLightColors[1].y,  pointLightColors[1].z);
 	glUniform1f(glGetUniformLocation(program, "pointLights[1].constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09);
-	glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032);	
+	glUniform1f(glGetUniformLocation(program, "pointLights[1].linear"), 0.09f);
+	glUniform1f(glGetUniformLocation(program, "pointLights[1].quadratic"), 0.032f);	
 
 	// SpotLight
 	glUniform3f(glGetUniformLocation(program, "spotLight.position"), 3.0f, 1.0f, 10.0f);
@@ -88,8 +88,8 @@ void Light::SetUniform(const GLuint &program, GLfloat deltaTime)
 	glUniform3f(glGetUniformLocation(program, "spotLight.diffuse"), 1.0f, 0.0f, 0.0f);
 	glUniform3f(glGetUniformLocation(program, "spotLight.specular"), 1.0f, 0.0f, 0.0f);
 	glUniform1f(glGetUniformLocation(program, "spotLight.constant"), 1.0f);
-	glUniform1f(glGetUniformLocation(program, "spotLight.linear"), 0.9);
-	glUniform1f(glGetUniformLocation(program, "spotLight.quadratic"), 0.32);
+	glUniform1f(glGetUniformLocation(program, "spotLight.linear"), 0.9f);
+	glUniform1f(glGetUniformLocation(program, "spotLight.quadratic"), 0.32f);
 	glUniform1f(glGetUniformLocation(program, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
 	glUniform1f(glGetUniformLocation(program, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
 }

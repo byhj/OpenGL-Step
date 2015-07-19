@@ -52,7 +52,7 @@ void Triangle::Shutdown()
 
 static const float FieldDepth = 20.0f;
 static const float FieldWidth = 10.0f;
-static const glm::vec3 Normal = glm::vec3(0.0, 1.0f, 0.0f);
+static const glm::vec3 Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
 static Vertex VertexData[6] = 
 {

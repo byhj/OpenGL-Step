@@ -5,7 +5,7 @@ void CalcNormals(const GLuint *pIndexData, GLsizei IndexCount,
 				 byhj::Vertex *pVertexData, GLsizei VertexCount)
 {
 	// Accumulate each triangle normal into each of the triangle vertices
-	for (unsigned int i = 0; i < IndexCount; i += 3) 
+	for (GLsizei i = 0; i < IndexCount; i += 3) 
 	{ 
 		//Get the three vertex index of triangle
 		unsigned int Index0 = pIndexData[i];  
@@ -23,7 +23,7 @@ void CalcNormals(const GLuint *pIndexData, GLsizei IndexCount,
 	}
 
 	// Normalize all the vertex normals
-	for (unsigned int i = 0; i < VertexCount; i++)
+	for (GLsizei i = 0; i < VertexCount; i++)
 	{ 
 		pVertexData[i].normal = glm::normalize(pVertexData[i].normal);
 	}
