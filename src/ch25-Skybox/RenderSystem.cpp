@@ -1,6 +1,4 @@
 #include "RenderSystem.h"
-#include "ogl/oglUtility.h"
-
 
 namespace byhj
 {
@@ -13,35 +11,38 @@ void RenderSystem::v_InitInfo()
 void RenderSystem::v_Init()
 {
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	//set the background color 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearDepth(1.0f);
 
-	m_Camera.SetPos( glm::vec3(0.0f, 1.0f, 8.0f) );
-	m_Triangle.Init();
+	m_Camera.SetPos( glm::vec3(0.0f, 0.0f, 0.0f) );
+	m_Skybox.Init();
 }
 
 void RenderSystem::v_Render()
 {
 	static const GLfloat bgColor[4] = { 0.2f, 0.3f, 0.4f, 1.0f};
 	glClearBufferfv(GL_COLOR, 0, bgColor);
+	static const GLfloat one = 1.0f;
+	glClearBufferfv(GL_DEPTH, 0, &one); 
 
 	float time = static_cast<float>( glfwGetTime() );
 	update();
 
-	byhj::MvpMatrix matrix;
-	matrix.proj  = glm::perspective(m_Camera.GetZoom(), GetAspect(), 0.1f, 1000.0f);
-	matrix.view  = m_Camera.GetViewMatrix();
-	matrix.model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, -10.0f) );
+	glm::mat4 view = glm::mat4( glm::mat3(m_Camera.GetViewMatrix()) );
+	glm::mat4 proj = glm::perspective(45.0f, GetAspect(), 0.1f, 1000.0f);
+	glm::mat4 mvp =  proj * view;
 
-	m_Triangle.Render(matrix, m_Camera);
+	// Draw skybox first, disable depth writing. 
+
+	glDepthFunc(GL_LEQUAL);
+	m_Skybox.Render(mvp);
+	glDepthFunc(GL_LESS);
+
+	// Set depth function back to default
 
 }
 
 void RenderSystem::v_Shutdown()
 {
-	m_Triangle.Shutdown();
+	m_Skybox.Shutdown();
 }
 
 /////////////////////////////////Key and Mouse//////////////////////////////////
@@ -51,11 +52,6 @@ void RenderSystem::v_Movement(GLFWwindow *window)
 }
 void RenderSystem::v_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	if (key == GLFW_KEY_Z)
-		m_Triangle.AddAmbient();
-	if (key == GLFW_KEY_X)
-		m_Triangle.MinusAmbient();
-
 	m_Camera.key_callback(window, key, scancode, action, mode);
 }
 

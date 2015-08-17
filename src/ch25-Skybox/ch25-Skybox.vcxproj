@@ -63,17 +63,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="model.frag" />
-    <None Include="model.vert" />
     <None Include="skybox.frag" />
     <None Include="skybox.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\include\ogl\camera.cpp" />
+    <ClCompile Include="..\..\include\ogl\loadTexture.cpp" />
+    <ClCompile Include="..\..\include\ogl\mesh.cpp" />
+    <ClCompile Include="..\..\include\ogl\model.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglApp.cpp" />
+    <ClCompile Include="..\..\include\ogl\oglShader.cpp" />
     <ClCompile Include="ch25-Skybox.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\common\camera.h" />
+    <ClInclude Include="..\..\include\ogl\loadTexture.h" />
+    <ClInclude Include="..\..\include\ogl\mesh.h" />
+    <ClInclude Include="..\..\include\ogl\model.h" />
+    <ClInclude Include="..\..\include\ogl\oglApp.h" />
+    <ClInclude Include="..\..\include\ogl\oglShader.h" />
     <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="skybox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

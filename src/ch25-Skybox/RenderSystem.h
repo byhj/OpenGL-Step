@@ -3,7 +3,7 @@
 
 #include "ogl/oglApp.h"
 #include "ogl/camera.h"
-#include <common/model.h>
+#include "skybox.h"
 
 namespace byhj
 {
@@ -30,7 +30,8 @@ private:
 	void update();
 
 	byhj::Camera  m_Camera;
-	byhj::Triangle m_Triangle;
+	byhj::Skybox m_Skybox;
+
 };
 
 }//Namespace
