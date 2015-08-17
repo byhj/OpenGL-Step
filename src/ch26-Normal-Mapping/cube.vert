@@ -4,10 +4,11 @@ layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec3 Normal;
 layout (location = 3) in vec3 Tangent; 
+layout (location = 4) in vec3 BiTangent;
 
-uniform mat4 proj;
-uniform mat4 view;
 uniform mat4 model;
+uniform mat4 view;
+uniform mat4 proj;
 
 out VS_OUT
 {
@@ -19,8 +20,10 @@ out VS_OUT
 
 void main(void)
 {
-   mat4 mv = view * model;
+
    vs_out.tc = TexCoord;
+
+   mat4 mv = view * model;
    vs_out.normal = mat3(mv) * Normal;
    vs_out.FragPos = mat3(mv) * Position;
    Tangent0    = (model * vec4(Tangent, 0.0)).xyz;  

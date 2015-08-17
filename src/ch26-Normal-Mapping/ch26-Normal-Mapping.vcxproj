@@ -63,11 +63,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="triangle.frag" />
-    <None Include="triangle.vert" />
+    <None Include="cube.frag" />
+    <None Include="cube.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ch26-Normal-Mapping.cpp" />
+    <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="cube.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="cube.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
