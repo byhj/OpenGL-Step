@@ -16,7 +16,7 @@ void Triangle::Init()
 	init_texture();
 }
 
-void Triangle::Render(const byhj::MvpMatrix &matrix, const byhj::Camera &camera)
+void Triangle::Render(const ogl::MvpMatrix &matrix, const ogl::Camera &camera)
 {
 	glUseProgram(program);
 	glBindVertexArray(vao);

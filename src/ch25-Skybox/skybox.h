@@ -1,7 +1,7 @@
 #ifndef SKYBOX_H
 #define SKYBOX_H
 
-#include "ogl/oglShader.h"
+#include "ogl/Shader.h"
 #include "ogl/model.h"
 
 namespace byhj
@@ -20,12 +20,12 @@ private:
 	void init_shader();
 	void init_texture();
 
-	Model SphereModel;
+	ogl::Model SphereModel;
 	GLuint program;
 	GLuint mvp_loc;
 	GLuint tex_loc;
 	GLuint cubemap_texture;
-	OGLShader SkyboxShader = { "Skybox Shader" };
+	ogl::Shader SkyboxShader = { "Skybox Shader" };
 };
 
 

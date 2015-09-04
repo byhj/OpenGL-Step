@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glfw/glfw3.h>
 
-#include "ogl/oglUtility.h"
+#include "ogl/Utility.h"
 
 namespace byhj
 {

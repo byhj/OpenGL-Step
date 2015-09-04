@@ -1,6 +1,6 @@
-#include "oglUtility.h"
+#include "Utility.h"
 
-//计算法线坐标
+
 void CalcNormals(const GLuint *pIndexData, GLsizei IndexCount,
 				 byhj::Vertex *pVertexData, GLsizei VertexCount)
 {

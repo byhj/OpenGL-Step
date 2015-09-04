@@ -14,8 +14,10 @@
 namespace byhj
 {
 
+namespace ogl
+{ 
 
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
+// Defines several possible options for camera movement. Used as abstraction to stay away from Triangle-system specific input methods
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -78,10 +80,10 @@ public:
 
 
 	// Moves/alters the camera positions based on user input
-	void movement(GLFWwindow *window);
-	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	void movement(GLFWwindow *Triangle);
+	void key_callback(GLFWwindow* Triangle, int key, int scancode, int action, int mode);
+	void mouse_callback(GLFWwindow* Triangle, double xpos, double ypos);
+	void scroll_callback(GLFWwindow* Triangle, double xoffset, double yoffset);
 
 	float GetZoom() const;
     glm::mat4 GetViewMatrix() const;
@@ -122,6 +124,7 @@ private:
 };
 
 
+}
 }
 
 #endif

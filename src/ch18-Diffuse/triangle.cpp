@@ -17,7 +17,7 @@ void Triangle::Init()
 
 }
 
-void Triangle::Render(const byhj::MvpMatrix &matrix)
+void Triangle::Render(const ogl::MvpMatrix &matrix)
 {
 	glUseProgram(program);
 	glBindVertexArray(vao);

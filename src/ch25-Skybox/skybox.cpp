@@ -69,7 +69,7 @@ void Skybox::init_texture()
 	faces.push_back("../../media/sp3bot.jpg");
 	faces.push_back("../../media/sp3front.jpg");
 	faces.push_back("../../media/sp3back.jpg");
-	cubemap_texture = loadCubeMap(faces);
+	cubemap_texture = ogl::loadCubeMap(faces);
 }
 
 }

@@ -1,5 +1,5 @@
 #include "RenderSystem.h"
-#include "ogl/oglUtility.h"
+#include "ogl/Utility.h"
 
 
 namespace byhj
@@ -26,7 +26,7 @@ void RenderSystem::v_Render()
 	float time = static_cast<float>( glfwGetTime() );
 	update();
 
-	byhj::MvpMatrix matrix;
+	ogl::MvpMatrix matrix;
 	matrix.proj  = glm::perspective(m_Camera.GetZoom(), GetAspect(), 0.1f, 1000.0f);
 	matrix.view  = m_Camera.GetViewMatrix();
 	matrix.model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, -10.0f) );

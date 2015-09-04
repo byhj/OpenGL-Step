@@ -1,8 +1,14 @@
-#include "oglApp.h"
+#include "App.h"
 
-std::shared_ptr<byhj::Application> byhj::Application::app;
+namespace byhj
+{
+namespace ogl
+{
 
-void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
+
+std::shared_ptr<App> App::app;
+
+void App::Run(std::shared_ptr<App> the_app)
 {	
     app = the_app;
 
@@ -15,22 +21,25 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 
 	v_InitInfo();
 
-	GLFWwindow *window = glfwCreateWindow(windowInfo.Width, windowInfo.Height,
+#ifdef _DEBUG
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
+	GLFWwindow *Triangle = glfwCreateWindow(windowInfo.Width, windowInfo.Height,
 		                                  windowInfo.title.c_str(), nullptr, nullptr);
-	glfwSetWindowPos(window, windowInfo.posX, windowInfo.posY);
-	glfwMakeContextCurrent(window);
+	glfwSetWindowPos(Triangle, windowInfo.posX, windowInfo.posY);
+	glfwMakeContextCurrent(Triangle);
 
 	//Key and Mouse callback function
-	glfwSetKeyCallback(window, glfw_key);
-	glfwSetCursorPosCallback(window, glfw_mouse);
-	glfwSetScrollCallback(window, glfw_scroll);
+	glfwSetKeyCallback(Triangle, glfw_key);
+	glfwSetCursorPosCallback(Triangle, glfw_mouse);
+	glfwSetScrollCallback(Triangle, glfw_scroll);
 
 	// GLFW Options
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//	glfwSetInputMode(Triangle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	if (window == NULL)
+	if (Triangle == NULL)
 	{
-		std::cerr << "Failed to create GLFW window" << std::endl;
+		std::cerr << "Failed to create GLFW Triangle" << std::endl;
 		glfwTerminate();
 		return ;
 	}	
@@ -66,34 +75,36 @@ void byhj::Application::Run(std::shared_ptr<byhj::Application> the_app)
 
 	glViewport(0, 0, windowInfo.Width, windowInfo.Height);
 
-	while (!glfwWindowShouldClose(window)) 
+	while (!glfwWindowShouldClose(Triangle)) 
 	{
 		glfwPollEvents();
-		v_Movement(window);
+		v_Movement(Triangle);
 
 		//Render for the object
 		v_Render();
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(Triangle);
 	}
 	v_Shutdown();
 
 	glfwTerminate();
 }
 
-float byhj::Application::GetAspect()
+float App::GetAspect() const
 {
 	return static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
 }
 
-int byhj::Application::GetScreenWidth()
+int App::GetScreenWidth() const 
 {
 	return ScreenWidth;
 }
 
-int byhj::Application::GetScreenHeight()
+int App::GetScreenHeight() const 
 {
 	return ScreenHeight;
 }
 
 
+}
+}

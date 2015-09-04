@@ -1,5 +1,6 @@
-#ifndef OGLUTILITY_H
-#define OGLUTILITY_H
+#ifndef UTILITY_H
+#define UTILITY_H
+
 
 #include <gl/glew.h>
 #include <glm/glm.hpp>
@@ -10,16 +11,18 @@
 
 namespace byhj
 {
+namespace ogl
+{
 	struct MvpMatrix
 	{
 	   glm::mat4 model;
 	   glm::mat4 view;
 	   glm::mat4 proj;
 	};
-
+}
 	struct Vertex
 	{
-		glm::vec3 pos; //顶点，纹理，法线坐标
+		glm::vec3 pos; 
 		glm::vec2 tex;
 		glm::vec3 normal;
 
@@ -48,5 +51,6 @@ namespace byhj
 
 void CalcNormals(const GLuint *pIndexData, GLsizei IndexCount,
 				 byhj::Vertex *pVertexData, GLsizei VertexCount);
+
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "ogl/oglShader.h"
+#include "ogl/Shader.h"
 #include "ogl/model.h"
 
 namespace byhj
@@ -20,11 +20,11 @@ private:
 	void init_shader();
 
 	GLuint program = 0;
-	byhj::Model phoenixModel;
+	ogl::Model phoenixModel;
 	GLuint model_loc;
 	GLuint view_loc;
 	GLuint proj_loc;
-	OGLShader ObjectShader ={ "Object Shader" } ;
+	ogl::Shader ObjectShader ={ "Object Shader" } ;
 };
 
 

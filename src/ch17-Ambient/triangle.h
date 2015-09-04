@@ -2,8 +2,8 @@
 #define Triangle_H
 
 #include <gl/glew.h>
-#include "ogl/oglShader.h"
-#include "ogl/oglUtility.h"
+#include "ogl/Shader.h"
+#include "ogl/Utility.h"
 
 #include "light.h"
 
@@ -20,7 +20,7 @@ public:
 
 public:
 	void Init();
-	void Render(const byhj::MvpMatrix &matrix);
+	void Render(const ogl::MvpMatrix &matrix);
 	void Shutdown();
 
 	void AddAmbient();
@@ -36,7 +36,7 @@ private:
 	GLuint tex;
     GLuint mvp_loc, tex_loc;
 	GLuint vao, vbo, ibo;
-	OGLShader TriangleShader;
+	ogl::Shader TriangleShader;
 	GLuint program;
 
 	byhj::Light m_Light;

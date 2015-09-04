@@ -1,7 +1,7 @@
 #ifndef Plane_H
 #define Plane_H
 
-#include "ogl/oglShader.h"
+#include "ogl/Shader.h"
 #include "ogl/model.h"
 
 namespace byhj
@@ -23,7 +23,7 @@ namespace byhj
 		GLuint program = 0;
 		GLuint vao, ibo, vbo;
 		GLuint tex_loc;
-		OGLShader PlaneShader ={ "Plane Shader" };
+		ogl::Shader PlaneShader ={ "Plane Shader" };
 	};
 
 

@@ -1,6 +1,6 @@
 #include <common/stepApp.h>
 
-class WindowApp: public byhj::Application
+class WindowApp: public ogl::App
 {
 public:
 	WindowApp() 

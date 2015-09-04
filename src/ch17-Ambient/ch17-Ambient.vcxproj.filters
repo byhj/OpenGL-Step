@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Framework">
-      <UniqueIdentifier>{c41bf607-7073-4ba6-9b61-649dba3fa4f0}</UniqueIdentifier>
+      <UniqueIdentifier>{c148f0c8-4814-48b6-a552-65b55d47d6b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -35,11 +35,8 @@
     <ClCompile Include="RenderSystem.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include\ogl\oglApp.cpp">
-      <Filter>Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\include\ogl\oglShader.cpp">
-      <Filter>Framework</Filter>
+    <ClCompile Include="light.cpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\include\ogl\camera.cpp">
       <Filter>Framework</Filter>
@@ -47,8 +44,11 @@
     <ClCompile Include="..\..\include\ogl\Texture.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="light.cpp">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="..\..\include\ogl\App.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\ogl\Shader.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -58,14 +58,8 @@
     <ClInclude Include="triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\ogl\oglApp.h">
-      <Filter>Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\ogl\oglShader.h">
-      <Filter>Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\ogl\oglUtility.h">
-      <Filter>Framework</Filter>
+    <ClInclude Include="light.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\common\camera.h">
       <Filter>Framework</Filter>
@@ -73,8 +67,11 @@
     <ClInclude Include="..\..\include\ogl\Texture.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="light.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\include\ogl\App.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ogl\Shader.h">
+      <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 #define Triangle_H
 
 #include <gl/glew.h>
-#include "ogl/oglShader.h"
+#include "ogl/Shader.h"
 
 namespace byhj
 {
@@ -27,7 +27,7 @@ private:
 
     GLuint model_loc;
 	GLuint vao, vbo;
-	OGLShader TriangleShader;
+	ogl::Shader TriangleShader;
 	GLuint program;
 };
 

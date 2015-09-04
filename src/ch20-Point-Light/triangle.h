@@ -6,8 +6,8 @@
 #endif
 
 #include <gl/glew.h>
-#include "ogl/oglShader.h"
-#include "ogl/oglUtility.h"
+#include "ogl/Shader.h"
+#include "ogl/Utility.h"
 #include "ogl/camera.h"
 
 #include "light.h"
@@ -26,7 +26,7 @@ public:
 
 public:
 	void Init();
-	void Render(const byhj::MvpMatrix &matrix, const byhj::Camera &camera);
+	void Render(const ogl::MvpMatrix &matrix, const ogl::Camera &camera);
 	void Shutdown();
 
 	void AddAmbient();
@@ -43,7 +43,7 @@ private:
     GLuint model_loc, view_loc, proj_loc;
 	GLuint viewPos_loc, tex_loc;
 	GLuint vao, vbo, ibo;
-	OGLShader TriangleShader;
+	ogl::Shader TriangleShader;
 	GLuint program;
 	byhj::Light m_Light;
 };

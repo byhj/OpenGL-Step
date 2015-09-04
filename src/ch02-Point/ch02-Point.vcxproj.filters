@@ -10,7 +10,7 @@
     <ClCompile Include="point.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include\ogl\oglApp.cpp">
+    <ClCompile Include="..\..\include\ogl\App.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
@@ -21,7 +21,7 @@
     <ClInclude Include="point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\ogl\oglApp.h">
+    <ClInclude Include="..\..\include\ogl\App.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,7 +36,7 @@
       <UniqueIdentifier>{803b4068-37b2-4469-8dea-7f25038e8d6b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Framework">
-      <UniqueIdentifier>{309dfc32-912b-4a34-b0b4-dd732b71dc74}</UniqueIdentifier>
+      <UniqueIdentifier>{14f82e2f-69ef-4b84-b67b-df9cb0cfb324}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

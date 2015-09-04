@@ -67,9 +67,9 @@
     <None Include="triangle.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\include\ogl\App.cpp" />
     <ClCompile Include="..\..\include\ogl\camera.cpp" />
-    <ClCompile Include="..\..\include\ogl\oglApp.cpp" />
-    <ClCompile Include="..\..\include\ogl\oglShader.cpp" />
+    <ClCompile Include="..\..\include\ogl\Shader.cpp" />
     <ClCompile Include="..\..\include\ogl\Texture.cpp" />
     <ClCompile Include="ch16-Texture.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
@@ -77,9 +77,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\common\camera.h" />
-    <ClInclude Include="..\..\include\ogl\oglApp.h" />
-    <ClInclude Include="..\..\include\ogl\oglShader.h" />
-    <ClInclude Include="..\..\include\ogl\oglUtility.h" />
+    <ClInclude Include="..\..\include\ogl\App.h" />
+    <ClInclude Include="..\..\include\ogl\Shader.h" />
     <ClInclude Include="..\..\include\ogl\Texture.h" />
     <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="triangle.h" />

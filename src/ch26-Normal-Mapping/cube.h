@@ -1,7 +1,7 @@
 #ifndef Cube_H
 #define Cube_H
 
-#include "ogl/oglShader.h"
+#include "ogl/Shader.h"
 #include "ogl/model.h"
 
 namespace byhj
@@ -27,7 +27,7 @@ private:
 	GLuint proj_loc;
 	GLuint tex_loc;
 	GLuint texture;
-	OGLShader CubeShader = { "Cube Shader" };
+	ogl::Shader CubeShader = { "Cube Shader" };
 };
 
 
