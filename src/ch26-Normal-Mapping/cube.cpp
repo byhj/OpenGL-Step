@@ -17,7 +17,7 @@ void Cube::Render(const glm::mat4 &mvp)
 	glUseProgram(program);
 
 
-	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, &mvp[0][0]);
+	glUniformMatrix4fv(model_loc, 1, GL_FALSE, &mvp[0][0]);
 
 	SphereModel.Draw(program);
 
@@ -49,7 +49,9 @@ void Cube::init_shader()
 	CubeShader.link();
 	program = CubeShader.GetProgram();
 	tex_loc = glGetUniformLocation(program, "normalTex");
-	mvp_loc = glGetUniformLocation(program, "mvp_matrix");
+	model_loc = glGetUniformLocation(program, "model");
+	view_loc = glGetUniformLocation(program, "view");
+	proj_loc = glGetUniformLocation(program, "proj");
 }
 
 void Cube::init_texture()

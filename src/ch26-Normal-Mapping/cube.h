@@ -20,13 +20,14 @@ private:
 	void init_shader();
 	void init_texture();
 
-	Model SphereModel;
+	ogl::Model SphereModel;
 	GLuint program;
+	GLuint texture;
+
 	GLuint model_loc;
 	GLuint view_loc;
 	GLuint proj_loc;
 	GLuint tex_loc;
-	GLuint texture;
 	ogl::Shader CubeShader = { "Cube Shader" };
 };
 
