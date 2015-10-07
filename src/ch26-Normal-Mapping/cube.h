@@ -11,7 +11,7 @@ class Cube
 {
 public:
 	void Init();
-	void Render(const glm::mat4 &mvp);
+	void Render(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &proj);
 	void Shutdown(); 
 
 private:
@@ -22,12 +22,15 @@ private:
 
 	ogl::Model SphereModel;
 	GLuint program;
-	GLuint texture;
+	GLuint brick_tex;
+	GLuint normal_tex;
 
 	GLuint model_loc;
 	GLuint view_loc;
 	GLuint proj_loc;
-	GLuint tex_loc;
+	GLuint brick_tex_loc;
+	GLuint normal_tex_loc;
+
 	ogl::Shader CubeShader = { "Cube Shader" };
 };
 

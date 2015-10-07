@@ -26,17 +26,11 @@ void RenderSystem::v_Render()
 	float time = static_cast<float>( glfwGetTime() );
 	update();
 
+	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = m_Camera.GetViewMatrix();
 	glm::mat4 proj = glm::perspective(45.0f, GetAspect(), 0.1f, 1000.0f);
-	glm::mat4 mvp =  proj * view;
 
-	// Draw Cube first, disable depth writing. 
-
-	glDepthFunc(GL_LEQUAL);
-	m_Cube.Render(mvp);
-	glDepthFunc(GL_LESS);
-
-	// Set depth function back to default
+	m_Cube.Render(model, view, proj);
 
 }
 

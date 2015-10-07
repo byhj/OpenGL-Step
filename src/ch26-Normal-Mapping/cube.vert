@@ -25,9 +25,11 @@ void main(void)
    vs_out.tc = TexCoord;
 
    mat4 mv = view * model;
-   vs_out.normal = mat3(mv) * Normal;
-   vs_out.FragPos = mat3(mv) * Position;
-   Tangent0    = (model * vec4(Tangent, 0.0)).xyz;  
+   vs_out.FragPos   = mat3(mv) * Position;
+   vs_out.normal    = (model * vec4(Normal, 0.0)).xyz; 
+   vs_out.tangent   = (model * vec4(Tangent, 0.0)).xyz;  
+   vs_out.biTangent = (model * vec4(BiTangent, 0.0)).xyz;  
+
    mat4 mvp = proj * mv;
 
    gl_Position = mvp * vec4(Position, 1.0f);
